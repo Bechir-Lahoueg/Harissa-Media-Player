@@ -8,8 +8,27 @@ export default defineConfig({
     tailwindcss(),
     react(),
 
-    electron({
-      entry: 'electron/main.ts',
-    }),
+    electron([
+      {
+        entry: 'electron/main.ts',
+      },
+      {
+        entry: 'electron/preload.ts',
+        vite: {
+          build: {
+            lib: {
+              entry: 'electron/preload.ts',
+              formats: ['cjs'],
+              fileName: () => '[name].cjs',
+            },
+            rolldownOptions: {
+              output: {
+                format: 'cjs',
+              },
+            },
+          },
+        },
+      },
+    ]),
   ],
 })
