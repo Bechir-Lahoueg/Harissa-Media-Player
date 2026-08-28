@@ -28,9 +28,7 @@ Thumbs.db
 desktop.ini
 
 # IDE / editor
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
+.vscode/
 .idea/
 
 # Temporary files
