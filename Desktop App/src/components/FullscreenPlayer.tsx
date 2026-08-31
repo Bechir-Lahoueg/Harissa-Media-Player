@@ -42,9 +42,8 @@ interface FullscreenPlayerProps {
  *
  * Same vocabulary as the docked bar — ember scrubber, mono timecodes, the mark —
  * but scaled up and laid on scrims that glow warm from the bottom edge, as if the
- * controls were sitting on coals. When the pointer goes quiet everything fades
- * out except one hairline of ember still burning along the bottom of the screen,
- * so progress survives without anything covering the picture.
+ * controls were sitting on coals. Fades out completely once the pointer goes
+ * quiet, leaving nothing over the picture.
  */
 export function FullscreenPlayer({
   player,

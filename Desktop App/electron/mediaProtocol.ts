@@ -13,10 +13,8 @@ function bodyFor(filePath: string, start: number, end: number): ReadableStream {
 
 /**
  * Serves a local file over the `media://` scheme with byte-range support.
- *
- * Chromium needs 206 responses to seek within a media file. Without them it can
- * only play from the start, and it re-requests the whole file whenever the
- * stream is interrupted — which is what made playback jump back to 0:00.
+ * Chromium requires 206 partial-content responses to seek within a media
+ * element; without them playback is restricted to sequential read from byte 0.
  */
 export async function handleMediaRequest(request: Request): Promise<Response> {
   let filePath: string;

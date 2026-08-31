@@ -21,6 +21,9 @@ import {
 
 export type RepeatMode = 'off' | 'all' | 'one'
 
+/** Matches the step the global ArrowUp/ArrowDown shortcut uses in useMediaPlayer. */
+const VOLUME_KEY_STEP = 0.05
+
 type Player = ReturnType<typeof useMediaPlayer>
 
 interface PlayerBarProps {
@@ -269,6 +272,35 @@ export function VolumeSlider({
         setDragging(false)
         if (trackRef.current?.hasPointerCapture(e.pointerId)) {
           trackRef.current.releasePointerCapture(e.pointerId)
+        }
+      }}
+      onKeyDown={(e) => {
+        if (disabled) return
+        // Owns its own arrow/Home/End handling per the WAI-ARIA slider pattern,
+        // rather than relying on the window-level shortcut for ArrowUp/Down.
+        switch (e.key) {
+          case 'ArrowRight':
+          case 'ArrowUp':
+            e.preventDefault()
+            e.stopPropagation()
+            onChange(volume + VOLUME_KEY_STEP)
+            break
+          case 'ArrowLeft':
+          case 'ArrowDown':
+            e.preventDefault()
+            e.stopPropagation()
+            onChange(volume - VOLUME_KEY_STEP)
+            break
+          case 'Home':
+            e.preventDefault()
+            e.stopPropagation()
+            onChange(0)
+            break
+          case 'End':
+            e.preventDefault()
+            e.stopPropagation()
+            onChange(1)
+            break
         }
       }}
       className={`group relative flex h-5 flex-shrink-0 items-center ${className} ${

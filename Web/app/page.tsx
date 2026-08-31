@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Logo } from "@/components/layout/wordmark";
+import { Logo, NameLockup } from "@/components/layout/wordmark";
 import { DownloadCard } from "@/components/ui/download-card";
 import { PathTrace } from "@/components/ui/path-trace";
 import { Screenshot } from "@/components/ui/screenshot";
 import { ShortcutTable } from "@/components/ui/shortcut-table";
+import { TypedTagline } from "@/components/ui/typed-tagline";
 import { platform, site } from "@/lib/site";
 
 /* Plain-language feature list for the home page. The docs have the version with
@@ -44,36 +45,62 @@ export default function Home() {
   return (
     <main id="content">
       {/* Hero */}
-      <section className="mx-auto max-w-[1180px] px-5 pb-16 pt-12 sm:px-8 sm:pt-16">
-        <Logo size={112} priority className="-ml-2" />
+      <section className="relative overflow-hidden">
+        {/* Heat coming off the mark. Sits behind everything and catches nothing. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -left-32 -top-44 h-[620px] w-[620px]"
+          style={{
+            background:
+              "radial-gradient(closest-side, rgba(224,27,39,0.15), rgba(255,106,24,0.05) 55%, transparent)",
+          }}
+        />
 
-        <h1 className="mt-7 max-w-[14ch] font-display text-[42px] font-semibold leading-[1.03] tracking-[-0.03em] text-cream sm:text-[64px]">
-          The spicy way to play.
-        </h1>
+        <div className="relative mx-auto max-w-[1180px] px-5 pb-16 pt-12 sm:px-8 sm:pt-16">
+          {/* The mark, then the name and the transport readout stacked beside it. */}
+          <div className="flex items-center gap-4 sm:gap-7">
+            <Logo size={80} priority className="shrink-0 sm:hidden" />
+            <Logo size={128} priority className="hidden shrink-0 sm:block" />
 
-        <p className="mt-6 max-w-[54ch] text-[17px] leading-relaxed text-ash">
-          Harissa is a small, free media player for Windows. Open your music or a
-          video and it plays. Nothing to sign up for, no library to set up, and
-          your files never leave your computer.
-        </p>
+            <div className="min-w-0">
+              <h1>
+                <NameLockup size="lg" />
+              </h1>
+              <TypedTagline
+                text="The spicy way to play."
+                className="mt-4 font-mono text-[14px] text-cream sm:mt-5 sm:text-[21px]"
+              />
+            </div>
+          </div>
 
-        <div className="mt-9 flex flex-wrap items-center gap-3">
-          <a
-            href="#download"
-            className="rounded-[10px] bg-chili px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-chili-hi"
-          >
-            Get Harissa
-          </a>
-          <Link
-            href="/docs/getting-started"
-            className="rounded-[10px] border border-line px-5 py-3 text-[14.5px] text-ash transition hover:border-ash-dim hover:text-cream"
-          >
-            How it works
-          </Link>
-        </div>
+          <p className="mt-8 max-w-[54ch] text-[17px] leading-relaxed text-ash">
+            A small, free media player for Windows. Open your music or a video
+            and it plays. Nothing to sign up for, no library to set up, and your
+            files never leave your computer.
+          </p>
 
-        <div className="mt-14">
-          <PathTrace />
+          <div className="mt-9 flex flex-wrap items-center gap-3">
+            <a
+              href="#download"
+              className="rounded-[10px] bg-chili px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-chili-hi"
+            >
+              Get Harissa
+            </a>
+            <Link
+              href="/docs/getting-started"
+              className="rounded-[10px] border border-line px-5 py-3 text-[14.5px] text-ash transition hover:border-ash-dim hover:text-cream"
+            >
+              How it works
+            </Link>
+          </div>
+
+          <p className="mt-6 font-mono text-[12px] tracking-wide text-ash-dim">
+            Free · {platform.os} · Open source
+          </p>
+
+          <div className="mt-14">
+            <PathTrace />
+          </div>
         </div>
       </section>
 

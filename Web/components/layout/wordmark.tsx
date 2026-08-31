@@ -31,14 +31,49 @@ export function Logo({
   );
 }
 
+/**
+ * The name, set as a two-line lockup.
+ *
+ * "Harissa" alone is a chili paste, a font, and several other products, so the
+ * category always rides underneath it in letterspaced mono. The hero uses the
+ * same arrangement at a larger size, which is what ties the two together.
+ */
+export function NameLockup({
+  size = "sm",
+}: {
+  /** `sm` for the header bar, `lg` for the hero. */
+  size?: "sm" | "lg";
+}) {
+  const large = size === "lg";
+
+  return (
+    <span className="flex flex-col leading-none">
+      <span
+        className={`font-display font-semibold tracking-[-0.03em] text-cream ${
+          large ? "text-[40px] sm:text-[56px]" : "text-[17px]"
+        }`}
+      >
+        Harissa
+      </span>
+      <span
+        className={`font-mono uppercase text-ash-dim ${
+          large
+            ? "mt-2 text-[11px] tracking-[0.42em] sm:text-[13px]"
+            : "mt-[3px] text-[8.5px] tracking-[0.22em]"
+        }`}
+      >
+        Media Player
+      </span>
+    </span>
+  );
+}
+
 /** The logo and the name, used in the header. */
 export function Wordmark() {
   return (
     <span className="flex items-center gap-2.5">
-      <Logo size={34} />
-      <span className="font-display text-[18px] font-semibold tracking-tight text-cream">
-        Harissa
-      </span>
+      <Logo size={36} />
+      <NameLockup />
     </span>
   );
 }

@@ -63,16 +63,24 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-line-soft pt-6">
-          <p className="font-mono text-[11.5px] text-ash-dim">
-            {site.fullName} — documentation for a project in development
-          </p>
-          <a
-            href={site.repository}
-            className="font-mono text-[11.5px] text-ash-dim transition hover:text-ash"
-          >
-            github.com/Bechir-Lahoueg/Harissa-Media-Player
-          </a>
+        <div className="mt-10 border-t border-line-soft pt-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <p className="text-[14px] text-cream font-medium">
+                Developed with <span className="text-flame">♥</span> by{" "}
+                <a
+                  href="https://github.com/Bechir-Lahoueg"
+                  className="text-chili underline decoration-chili underline-offset-2 hover:text-chili-hi transition"
+                >
+                  Bechir Lahoueg
+                </a>
+              </p>
+              <p className="mt-2 font-mono text-[11.5px] text-ash-dim">
+                {site.fullName} — documentation for a project in development
+              </p>
+            </div>
+          
+          </div>
         </div>
       </div>
     </footer>

@@ -51,11 +51,19 @@ function App() {
     setCurrentIndex(index)
   }, [])
 
+  /** Whether advancing would land on a track, under the current shuffle/repeat rules. */
+  const hasNext = useCallback((): boolean => {
+    if (playlist.length === 0) return false
+    if (shuffle) return playlist.length > 1 || repeat !== 'off'
+    if (currentIndex < playlist.length - 1) return true
+    return repeat === 'all'
+  }, [playlist.length, shuffle, repeat, currentIndex])
+
   /** The track that follows this one, or null when the queue has run out. */
   const nextIndex = useCallback((): number | null => {
-    if (playlist.length === 0) return null
+    if (!hasNext()) return null
     if (shuffle) {
-      if (playlist.length === 1) return repeat === 'off' ? null : currentIndex
+      if (playlist.length === 1) return currentIndex
       let candidate = currentIndex
       while (candidate === currentIndex) {
         candidate = Math.floor(Math.random() * playlist.length)
@@ -63,8 +71,8 @@ function App() {
       return candidate
     }
     if (currentIndex < playlist.length - 1) return currentIndex + 1
-    return repeat === 'all' ? 0 : null
-  }, [playlist.length, shuffle, repeat, currentIndex])
+    return 0
+  }, [hasNext, shuffle, playlist.length, currentIndex])
 
   const handleNext = useCallback(() => {
     const next = nextIndex()
@@ -270,8 +278,10 @@ function App() {
     addToQueue(paths)
   }
 
-  const canNext =
-    playlist.length > 0 && (currentIndex < playlist.length - 1 || repeat === 'all' || shuffle)
+  // Derived straight from hasNext() rather than re-deriving the same shuffle/
+  // repeat rules separately, so the button's enabled state can never drift out
+  // of sync with what clicking it actually does.
+  const canNext = trackPath !== null && hasNext()
   const canPrev = trackPath !== null
 
   // The stage already carries the position in the queue; don't repeat it here.

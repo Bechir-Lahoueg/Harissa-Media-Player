@@ -24,13 +24,13 @@ export function TopBar({
 }: TopBarProps) {
   return (
     <header className="drag z-30 flex h-[52px] flex-shrink-0 items-center gap-3 border-b border-line-soft bg-shell pl-4 pr-2">
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-3">
         <img
           src={logo}
           alt=""
-          className="h-10 w-10 object-contain drop-shadow-[0_3px_12px_rgba(224,27,39,0.55)]"
+          className="h-[46px] w-[46px] object-contain drop-shadow-[0_3px_14px_rgba(224,27,39,0.55)]"
         />
-        <span className="font-display text-[19px] font-semibold leading-none tracking-[-0.035em] text-cream">
+        <span className="font-display text-[20px] font-semibold leading-none tracking-[-0.035em] text-cream">
           Harissa
         </span>
       </div>

@@ -100,6 +100,31 @@
     scrollbar-width: thin;
     scrollbar-color: var(--color-line) transparent;
   }
+
+  /* The block caret on the hero readout — a transport cursor, not a text I-beam. */
+  .caret {
+    display: inline-block;
+    width: 0.46em;
+    height: 1em;
+    margin-left: 0.14em;
+    vertical-align: -0.14em;
+    background: var(--color-chili);
+  }
+
+  .caret-blink {
+    animation: caret-blink 1.05s steps(1, end) infinite;
+  }
+}
+
+@keyframes caret-blink {
+  0%,
+  48% {
+    opacity: 1;
+  }
+  49%,
+  100% {
+    opacity: 0;
+  }
 }
 
 /*
