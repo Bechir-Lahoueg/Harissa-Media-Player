@@ -3,7 +3,7 @@ export {}
 declare global {
   interface Window {
     harissa: {
-      openFile: () => Promise<string | null>
+      openFile: () => Promise<string[] | null>
     }
   }
 }

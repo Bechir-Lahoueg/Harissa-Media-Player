@@ -1,6 +1,8 @@
-import { app, BrowserWindow, dialog, ipcMain, net, protocol } from "electron";
+import electron from "electron";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+
+const { app, BrowserWindow, dialog, ipcMain, net, protocol } = electron;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -28,6 +30,9 @@ app.whenReady().then(() => {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
+    minWidth: 480,
+    minHeight: 320,
+    resizable: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),
     },
@@ -42,7 +47,7 @@ app.whenReady().then(() => {
 
 ipcMain.handle('dialog:openFile', async () => {
   const result = await dialog.showOpenDialog({
-    properties: ['openFile'],
+    properties: ['openFile', 'multiSelections'],
     filters: [
       {
         name: 'Media Files',
@@ -55,5 +60,5 @@ ipcMain.handle('dialog:openFile', async () => {
     return null
   }
 
-  return result.filePaths[0]
+  return result.filePaths
 })
