@@ -103,7 +103,7 @@ export function PlayerBar({
             onClick={player.togglePlay}
             className="ember mx-1.5 flex h-[42px] w-[42px] items-center justify-center rounded-full text-white shadow-[0_4px_16px_-4px_rgba(224,27,39,0.75)] transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-25 disabled:shadow-none"
           >
-            {player.isPlaying ? <PauseIcon /> : <PlayIcon className="ml-0.5 h-5 w-5" />}
+            {player.isPlaying ? <PauseIcon /> : <PlayIcon className="h-5 w-5" />}
           </button>
 
           <HoldButton
@@ -225,14 +225,16 @@ function TrackIdentity({
   )
 }
 
-function VolumeSlider({
+export function VolumeSlider({
   volume,
   disabled,
   onChange,
+  className = 'w-[88px]',
 }: {
   volume: number
   disabled: boolean
   onChange: (value: number) => void
+  className?: string
 }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const [dragging, setDragging] = useState(false)
@@ -269,7 +271,7 @@ function VolumeSlider({
           trackRef.current.releasePointerCapture(e.pointerId)
         }
       }}
-      className={`group relative flex h-5 w-[88px] flex-shrink-0 items-center ${
+      className={`group relative flex h-5 flex-shrink-0 items-center ${className} ${
         disabled ? 'pointer-events-none opacity-30' : 'cursor-pointer'
       }`}
     >
@@ -289,7 +291,7 @@ function VolumeSlider({
   )
 }
 
-function IconButton({
+export function IconButton({
   label,
   disabled,
   active,
@@ -302,7 +304,7 @@ function IconButton({
   active?: boolean
   onClick: () => void
   children: React.ReactNode
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'lg'
 }) {
   return (
     <button
@@ -313,7 +315,7 @@ function IconButton({
       disabled={disabled}
       onClick={onClick}
       className={`relative flex items-center justify-center rounded-full transition-colors disabled:cursor-not-allowed disabled:opacity-25 ${
-        size === 'sm' ? 'h-8 w-8' : 'h-9 w-9'
+        size === 'sm' ? 'h-8 w-8' : size === 'lg' ? 'h-12 w-12' : 'h-9 w-9'
       } ${active ? 'text-chili-hi hover:bg-raise' : 'text-ash hover:bg-raise hover:text-cream'}`}
     >
       {children}
@@ -322,18 +324,20 @@ function IconButton({
   )
 }
 
-function HoldButton({
+export function HoldButton({
   label,
   disabled,
   onStart,
   onEnd,
   children,
+  size = 'md',
 }: {
   label: string
   disabled?: boolean
   onStart: () => void
   onEnd: () => void
   children: React.ReactNode
+  size?: 'md' | 'lg'
 }) {
   // A press must have started on this button before it can end. Without this,
   // pointerleave fires the seek just for moving the cursor across the button.
@@ -361,7 +365,9 @@ function HoldButton({
       onPointerLeave={end}
       onPointerCancel={end}
       onContextMenu={(e) => e.preventDefault()}
-      className="flex h-9 w-9 items-center justify-center rounded-full text-ash transition-colors hover:bg-raise hover:text-cream disabled:cursor-not-allowed disabled:opacity-25"
+      className={`flex items-center justify-center rounded-full text-ash transition-colors hover:bg-raise hover:text-cream disabled:cursor-not-allowed disabled:opacity-25 ${
+        size === 'lg' ? 'h-12 w-12' : 'h-9 w-9'
+      }`}
     >
       {children}
     </button>

@@ -10,8 +10,15 @@ const stroke = {
 
 export function PlayIcon({ className = 'h-5 w-5' }: IconProps) {
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
-      <path d="M8.4 5.6a1 1 0 0 1 1.53-.85l8.2 5.35a1.2 1.2 0 0 1 0 2l-8.2 5.35a1 1 0 0 1-1.53-.85Z" />
+    <svg viewBox="0 0 24 24" className={className} aria-hidden>
+      <path
+        d="M9.3 6.2 17.5 12 9.3 17.8Z"
+        fill="currentColor"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
     </svg>
   )
 }
@@ -19,8 +26,8 @@ export function PlayIcon({ className = 'h-5 w-5' }: IconProps) {
 export function PauseIcon({ className = 'h-5 w-5' }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden>
-      <rect x="6.5" y="5" width="3.6" height="14" rx="1.4" />
-      <rect x="13.9" y="5" width="3.6" height="14" rx="1.4" />
+      <rect x="7" y="5.1" width="3.6" height="13.8" rx="1.5" />
+      <rect x="13.4" y="5.1" width="3.6" height="13.8" rx="1.5" />
     </svg>
   )
 }

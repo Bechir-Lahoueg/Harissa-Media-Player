@@ -109,6 +109,13 @@
     background: transparent;
   }
 
+  /* Descendants set their own cursors (the video is a pointer), so hiding the
+     cursor in fullscreen has to beat them all. */
+  .hide-cursor,
+  .hide-cursor * {
+    cursor: none !important;
+  }
+
   /* The one bold move: the scrubber burns. */
   .ember {
     background-image: linear-gradient(
@@ -132,6 +139,22 @@
   }
   50% {
     transform: scaleY(1);
+  }
+}
+
+/* A slow ember breathing out from the paused play button. */
+@keyframes harissa-halo {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  70% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
   }
 }
 

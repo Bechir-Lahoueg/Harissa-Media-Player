@@ -83,51 +83,6 @@ Nothing is copied and nothing is uploaded. It works fine with the wifi off.
 | `Ctrl + B` | Show or hide the sidebar |
 | `Ctrl + J` | Show or hide the queue |
 
-## Run it from source today
-
-You need [Node.js](https://nodejs.org) 20.19 or newer and Git.
-
-```bash
-git clone https://github.com/Bechir-Lahoueg/Harissa-Media-Player.git
-cd "Harissa-Media-Player/Desktop App"
-npm install
-npm run dev
-```
-
-The Harissa window opens on its own. Leave the terminal running — closing it
-stops the application.
-
-## Documentation
-
-Full documentation lives in the `Web/` folder of this repository and is published
-as the project website: installation, a user guide, the technical architecture,
-development setup, the roadmap and an FAQ.
-
-```bash
-cd Harissa-Media-Player/Web
-npm install
-npm run dev      # http://localhost:3000
-```
-
-## Repository layout
-
-```text
-Harissa-Media-Player/
-├── Desktop App/          The Electron media player
-│   ├── electron/         Main process and preload bridge
-│   ├── src/              React renderer — the interface
-│   └── docs/             Design notes and product requirements
-└── Web/                  The documentation website (Next.js)
-    ├── app/              Routes and pages
-    ├── components/       Reusable interface components
-    ├── lib/              Site content as data
-    └── public/           Logo and screenshots
-```
-
-## Built with
-
-React · TypeScript · Vite · Tailwind CSS · Electron
-
 ## Roadmap
 
 **V1** — local MP3 and MP4 playback, the controls listed above, and a Windows

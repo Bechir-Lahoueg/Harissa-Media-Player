@@ -13,6 +13,8 @@ interface StageProps {
   position: number
   total: number
   error: string | null
+  /** Fullscreen: the picture fills the window and all surrounding chrome goes. */
+  immersive: boolean
   onError: (message: string) => void
   onOpenFiles: () => void
   onTogglePlay: () => void
@@ -29,22 +31,35 @@ export function Stage({
   position,
   total,
   error,
+  immersive,
   onError,
   onOpenFiles,
   onTogglePlay,
 }: StageProps) {
   return (
-    <section className="scroll-thin relative flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center overflow-y-auto px-8 py-6">
+    <section
+      className={`relative flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center ${
+        immersive ? 'overflow-hidden bg-black p-0' : 'scroll-thin overflow-y-auto px-8 py-6'
+      }`}
+    >
       {/* A single <video> element backs both audio and video so playback survives
           every layout change; for audio it is simply not shown. */}
       <div
         className={
           trackPath && isVideo
-            ? 'flex min-h-0 w-full max-w-[980px] flex-col items-center'
+            ? immersive
+              ? 'flex h-full w-full items-center justify-center'
+              : 'flex min-h-0 w-full max-w-[980px] flex-col items-center'
             : 'pointer-events-none absolute h-0 w-0 overflow-hidden opacity-0'
         }
       >
-        <div className="relative w-full overflow-hidden rounded-panel border border-line bg-black shadow-[0_24px_60px_-30px_rgba(0,0,0,0.9)]">
+        <div
+          className={
+            immersive
+              ? 'relative flex h-full w-full items-center justify-center bg-black'
+              : 'relative w-full overflow-hidden rounded-panel border border-line bg-black shadow-[0_24px_60px_-30px_rgba(0,0,0,0.9)]'
+          }
+        >
           <video
             ref={mediaRef}
             src={mediaUrl ?? undefined}
@@ -53,12 +68,16 @@ export function Stage({
               const err = e.currentTarget.error
               onError(err?.message || `This file could not be decoded (code ${err?.code ?? '?'}).`)
             }}
-            className="max-h-[58vh] w-full cursor-pointer bg-black"
+            className={
+              immersive
+                ? 'h-full max-h-full w-full cursor-pointer bg-black object-contain'
+                : 'max-h-[58vh] w-full cursor-pointer bg-black'
+            }
           />
         </div>
       </div>
 
-      {trackPath ? (
+      {immersive ? null : trackPath ? (
         <div className="rise mt-6 w-full max-w-[980px]">
           {!isVideo && <AudioArt artwork={artwork} isPlaying={isPlaying} />}
 

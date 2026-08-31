@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { FullscreenPlayer } from './components/FullscreenPlayer'
 import { PlayerBar, type RepeatMode } from './components/PlayerBar'
 import { QueuePanel } from './components/QueuePanel'
 import { Sidebar } from './components/Sidebar'
 import { Stage } from './components/Stage'
 import { TopBar } from './components/TopBar'
 import { useArtwork } from './hooks/useArtwork'
+import { useIdle } from './hooks/useIdle'
 import { useMediaPlayer } from './hooks/useMediaPlayer'
 import { MEDIA_EXTENSIONS, extensionOf, isVideoFile } from './lib/media'
 
 /** Pressing previous within this many seconds goes to the previous track rather than restarting. */
 const RESTART_THRESHOLD_SECONDS = 3
+/** How long the pointer must be still before the fullscreen chrome and cursor go. */
+const CONTROLS_FADE_MS = 2000
 
 function isTypingTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
@@ -27,6 +31,7 @@ function App() {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isDropTarget, setIsDropTarget] = useState(false)
 
+  const shellRef = useRef<HTMLDivElement>(null)
   const mediaRef = useRef<HTMLVideoElement>(null)
   const autoPlayRef = useRef(false)
   const endedRef = useRef<() => void>(() => {})
@@ -143,13 +148,13 @@ function App() {
   }, [])
 
   const toggleFullscreen = useCallback(() => {
-    const media = mediaRef.current
-    if (!media || !isVideo) return
+    const shell = shellRef.current
+    if (!shell || !isVideo) return
     if (document.fullscreenElement) {
       void document.exitFullscreen()
     } else {
-      void media.requestFullscreen().catch(() => {
-        /* Some sources refuse fullscreen; the button simply stays inactive. */
+      void shell.requestFullscreen().catch(() => {
+        /* Refused by the platform; the button simply stays inactive. */
       })
     }
   }, [isVideo])
@@ -272,9 +277,19 @@ function App() {
   // The stage already carries the position in the queue; don't repeat it here.
   const context = trackPath ? 'Now playing' : 'No media open'
 
+  // In fullscreen the chrome fades once the pointer is still, but stays up while
+  // paused so the state is never a mystery. The cursor goes either way — a still
+  // pointer over a still picture is just clutter.
+  const idle = useIdle(isFullscreen, CONTROLS_FADE_MS)
+  const controlsVisible = !idle || !player.isPlaying
+  const cursorHidden = isFullscreen && idle
+
   return (
     <div
-      className="relative flex h-full flex-col bg-ink"
+      ref={shellRef}
+      className={`relative flex h-full flex-col bg-ink ${
+cursorHidden ? 'hide-cursor' : ''
+      }`}
       onDragOver={(e) => {
         e.preventDefault()
         setIsDropTarget(true)
@@ -284,26 +299,32 @@ function App() {
       }}
       onDrop={handleDrop}
     >
-      <TopBar
-        sidebarCollapsed={sidebarCollapsed}
-        onToggleSidebar={() => setSidebarCollapsed((c) => !c)}
-        queueOpen={queueOpen}
-        onToggleQueue={() => setQueueOpen((o) => !o)}
-        queueCount={playlist.length}
-        context={context}
-      />
+      {!isFullscreen && (
+        <TopBar
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={() => setSidebarCollapsed((c) => !c)}
+          queueOpen={queueOpen}
+          onToggleQueue={() => setQueueOpen((o) => !o)}
+          queueCount={playlist.length}
+          context={context}
+        />
+      )}
 
       <div className="flex min-h-0 flex-1">
-        <Sidebar
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed((c) => !c)}
-          queueOpen={queueOpen}
-          onShowNowPlaying={() => setQueueOpen(false)}
-          onShowQueue={() => setQueueOpen(true)}
-          queueCount={playlist.length}
-          onOpenFiles={handleOpenFiles}
-        />
+        {!isFullscreen && (
+          <Sidebar
+            collapsed={sidebarCollapsed}
+            onToggle={() => setSidebarCollapsed((c) => !c)}
+            queueOpen={queueOpen}
+            onShowNowPlaying={() => setQueueOpen(false)}
+            onShowQueue={() => setQueueOpen(true)}
+            queueCount={playlist.length}
+            onOpenFiles={handleOpenFiles}
+          />
+        )}
 
+        {/* The Stage stays mounted in fullscreen so the <video> is never torn
+            down and playback carries straight through the transition. */}
         <Stage
           mediaRef={mediaRef}
           mediaUrl={mediaUrl}
@@ -315,13 +336,14 @@ function App() {
           position={currentIndex + 1}
           total={playlist.length}
           error={mediaError}
+          immersive={isFullscreen}
           onError={setMediaError}
           onOpenFiles={handleOpenFiles}
           onTogglePlay={player.togglePlay}
         />
 
         <QueuePanel
-          open={queueOpen}
+          open={queueOpen && !isFullscreen}
           tracks={playlist}
           currentIndex={currentIndex}
           isPlaying={player.isPlaying}
@@ -333,23 +355,44 @@ function App() {
         />
       </div>
 
-      <PlayerBar
-        player={player}
-        trackPath={trackPath}
-        artwork={artwork}
-        mediaUrl={mediaUrl}
-        isVideo={isVideo}
-        isFullscreen={isFullscreen}
-        canPrev={canPrev}
-        canNext={canNext}
-        onPrev={handlePrev}
-        onNext={handleNext}
-        shuffle={shuffle}
-        onToggleShuffle={() => setShuffle((s) => !s)}
-        repeat={repeat}
-        onCycleRepeat={cycleRepeat}
-        onToggleFullscreen={toggleFullscreen}
-      />
+      {!isFullscreen && (
+        <PlayerBar
+          player={player}
+          trackPath={trackPath}
+          artwork={artwork}
+          mediaUrl={mediaUrl}
+          isVideo={isVideo}
+          isFullscreen={isFullscreen}
+          canPrev={canPrev}
+          canNext={canNext}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          shuffle={shuffle}
+          onToggleShuffle={() => setShuffle((s) => !s)}
+          repeat={repeat}
+          onCycleRepeat={cycleRepeat}
+          onToggleFullscreen={toggleFullscreen}
+        />
+      )}
+
+      {isFullscreen && (
+        <FullscreenPlayer
+          player={player}
+          trackPath={trackPath}
+          position={currentIndex + 1}
+          total={playlist.length}
+          visible={controlsVisible}
+          canPrev={canPrev}
+          canNext={canNext}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          shuffle={shuffle}
+          onToggleShuffle={() => setShuffle((s) => !s)}
+          repeat={repeat}
+          onCycleRepeat={cycleRepeat}
+          onExit={toggleFullscreen}
+        />
+      )}
 
       {isDropTarget && (
         <div className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center bg-ink/70 backdrop-blur-[2px]">

@@ -6,6 +6,8 @@ interface ScrubberProps {
   duration: number
   disabled: boolean
   onSeek: (time: number) => void
+  /** The fullscreen player gets a heavier bar and larger timecodes. */
+  size?: 'md' | 'lg'
 }
 
 /**
@@ -13,7 +15,14 @@ interface ScrubberProps {
  * from chili red into flame orange, and the elapsed timecode is editable, so a
  * track can be started at 2:00 by typing it rather than by aiming at a pixel.
  */
-export function Scrubber({ currentTime, duration, disabled, onSeek }: ScrubberProps) {
+export function Scrubber({
+  currentTime,
+  duration,
+  disabled,
+  onSeek,
+  size = 'md',
+}: ScrubberProps) {
+  const large = size === 'lg'
   const barRef = useRef<HTMLDivElement>(null)
   const [isScrubbing, setIsScrubbing] = useState(false)
   const [hoverRatio, setHoverRatio] = useState<number | null>(null)
@@ -50,15 +59,16 @@ export function Scrubber({ currentTime, duration, disabled, onSeek }: ScrubberPr
   const remaining = Math.max(duration - currentTime, 0)
 
   return (
-    <div className="flex w-full items-center gap-3">
+    <div className={`flex w-full items-center ${large ? 'gap-5' : 'gap-3'}`}>
       <TimeField
         seconds={currentTime}
         max={duration}
         disabled={disabled || duration <= 0}
         onCommit={onSeek}
+        large={large}
       />
 
-      <div className="group relative flex h-5 flex-1 items-center">
+      <div className={`group relative flex flex-1 items-center ${large ? 'h-7' : 'h-5'}`}>
         {hoverRatio !== null && duration > 0 && !disabled && (
           <div
             className="tnum pointer-events-none absolute -top-[3px] z-10 -translate-x-1/2 -translate-y-full rounded-md border border-line bg-ink px-1.5 py-1 text-[11px] text-cream opacity-0 shadow-lg transition-opacity group-hover:opacity-100"
@@ -92,7 +102,13 @@ export function Scrubber({ currentTime, duration, disabled, onSeek }: ScrubberPr
             }
           }}
           className={`relative w-full rounded-full bg-line transition-[height] duration-150 ${
-            isScrubbing ? 'h-[6px]' : 'h-[4px] group-hover:h-[6px]'
+            large
+              ? isScrubbing
+                ? 'h-[8px]'
+                : 'h-[6px] group-hover:h-[8px]'
+              : isScrubbing
+                ? 'h-[6px]'
+                : 'h-[4px] group-hover:h-[6px]'
           } ${disabled ? 'cursor-not-allowed opacity-40' : 'cursor-pointer'}`}
         >
           <div
@@ -100,7 +116,9 @@ export function Scrubber({ currentTime, duration, disabled, onSeek }: ScrubberPr
             style={{ width: `${percent}%` }}
           />
           <div
-            className={`ember ember-glow pointer-events-none absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity duration-150 ${
+            className={`ember ember-glow pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity duration-150 ${
+              large ? 'h-4 w-4' : 'h-3 w-3'
+            } ${
               isScrubbing ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
             }`}
             style={{ left: `${percent}%` }}
@@ -108,7 +126,11 @@ export function Scrubber({ currentTime, duration, disabled, onSeek }: ScrubberPr
         </div>
       </div>
 
-      <span className="tnum w-[52px] flex-shrink-0 text-right text-[12px] text-ash-dim">
+      <span
+        className={`tnum flex-shrink-0 text-right ${
+          large ? 'w-[74px] text-[15px] text-ash' : 'w-[52px] text-[12px] text-ash-dim'
+        }`}
+      >
         {duration > 0 ? `-${formatTime(remaining)}` : '--:--'}
       </span>
     </div>
@@ -120,10 +142,11 @@ interface TimeFieldProps {
   max: number
   disabled: boolean
   onCommit: (seconds: number) => void
+  large: boolean
 }
 
 /** Click the elapsed time, type a timecode, press Enter to jump there. */
-function TimeField({ seconds, max, disabled, onCommit }: TimeFieldProps) {
+function TimeField({ seconds, max, disabled, onCommit, large }: TimeFieldProps) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [invalid, setInvalid] = useState(false)
@@ -169,9 +192,9 @@ function TimeField({ seconds, max, disabled, onCommit }: TimeFieldProps) {
           if (e.key === 'Escape') setEditing(false)
         }}
         onBlur={() => setEditing(false)}
-        className={`tnum w-[62px] flex-shrink-0 rounded-md border bg-ink px-1.5 py-[3px] text-center text-[12px] text-cream outline-none ${
-          invalid ? 'border-chili' : 'border-flame'
-        }`}
+        className={`tnum flex-shrink-0 rounded-md border bg-ink text-center text-cream outline-none ${
+          large ? 'w-[84px] px-2 py-1 text-[15px]' : 'w-[62px] px-1.5 py-[3px] text-[12px]'
+        } ${invalid ? 'border-chili' : 'border-flame'}`}
       />
     )
   }
@@ -182,7 +205,9 @@ function TimeField({ seconds, max, disabled, onCommit }: TimeFieldProps) {
       onClick={beginEditing}
       disabled={disabled}
       title="Jump to a timecode — click and type, e.g. 2:00"
-      className="tnum w-[62px] flex-shrink-0 rounded-md border border-transparent px-1.5 py-[3px] text-center text-[12px] text-cream transition-colors hover:border-line hover:bg-raise disabled:cursor-not-allowed disabled:text-ash-dim disabled:hover:border-transparent disabled:hover:bg-transparent"
+      className={`tnum flex-shrink-0 rounded-md border border-transparent text-center text-cream transition-colors hover:border-line hover:bg-raise/70 disabled:cursor-not-allowed disabled:text-ash-dim disabled:hover:border-transparent disabled:hover:bg-transparent ${
+        large ? 'w-[84px] px-2 py-1 text-[15px]' : 'w-[62px] px-1.5 py-[3px] text-[12px]'
+      }`}
     >
       {formatTime(seconds)}
     </button>
