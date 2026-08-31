@@ -1,114 +1,369 @@
-import { useRef, useState } from 'react'
-import { PlayerControls } from './components/PlayerControls'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { PlayerBar, type RepeatMode } from './components/PlayerBar'
+import { QueuePanel } from './components/QueuePanel'
+import { Sidebar } from './components/Sidebar'
+import { Stage } from './components/Stage'
+import { TopBar } from './components/TopBar'
+import { useArtwork } from './hooks/useArtwork'
+import { useMediaPlayer } from './hooks/useMediaPlayer'
+import { MEDIA_EXTENSIONS, extensionOf, isVideoFile } from './lib/media'
+
+/** Pressing previous within this many seconds goes to the previous track rather than restarting. */
+const RESTART_THRESHOLD_SECONDS = 3
+
+function isTypingTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
+}
 
 function App() {
   const [playlist, setPlaylist] = useState<string[]>([])
   const [currentIndex, setCurrentIndex] = useState(-1)
   const [mediaError, setMediaError] = useState<string | null>(null)
-  const mediaRef = useRef<HTMLMediaElement>(null)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [queueOpen, setQueueOpen] = useState(false)
+  const [shuffle, setShuffle] = useState(false)
+  const [repeat, setRepeat] = useState<RepeatMode>('off')
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isDropTarget, setIsDropTarget] = useState(false)
 
-  const mediaPath = currentIndex >= 0 ? (playlist[currentIndex] ?? null) : null
+  const mediaRef = useRef<HTMLVideoElement>(null)
+  const autoPlayRef = useRef(false)
+  const endedRef = useRef<() => void>(() => {})
 
-  const handleOpenFile = async () => {
-    const filePaths = await window.harissa.openFile()
+  const trackPath = currentIndex >= 0 ? (playlist[currentIndex] ?? null) : null
+  const mediaUrl = trackPath ? `media://local/${encodeURIComponent(trackPath)}` : null
+  const isVideo = trackPath ? isVideoFile(trackPath) : false
 
-    if (filePaths && filePaths.length > 0) {
-      setMediaError(null)
-      setPlaylist(filePaths)
-      setCurrentIndex(0)
+  const player = useMediaPlayer(mediaRef, trackPath, {
+    onEnded: () => endedRef.current(),
+  })
+  const artwork = useArtwork(trackPath)
+
+  const goTo = useCallback((index: number, autoPlay = true) => {
+    autoPlayRef.current = autoPlay
+    setMediaError(null)
+    setCurrentIndex(index)
+  }, [])
+
+  /** The track that follows this one, or null when the queue has run out. */
+  const nextIndex = useCallback((): number | null => {
+    if (playlist.length === 0) return null
+    if (shuffle) {
+      if (playlist.length === 1) return repeat === 'off' ? null : currentIndex
+      let candidate = currentIndex
+      while (candidate === currentIndex) {
+        candidate = Math.floor(Math.random() * playlist.length)
+      }
+      return candidate
     }
-  }
+    if (currentIndex < playlist.length - 1) return currentIndex + 1
+    return repeat === 'all' ? 0 : null
+  }, [playlist.length, shuffle, repeat, currentIndex])
 
-  const handlePrev = () => {
+  const handleNext = useCallback(() => {
+    const next = nextIndex()
+    if (next !== null) goTo(next)
+  }, [nextIndex, goTo])
+
+  const handlePrev = useCallback(() => {
+    if (player.currentTime > RESTART_THRESHOLD_SECONDS) {
+      player.seekTo(0)
+      return
+    }
+    if (currentIndex > 0) {
+      goTo(currentIndex - 1)
+    } else if (repeat === 'all' && playlist.length > 0) {
+      goTo(playlist.length - 1)
+    } else {
+      player.seekTo(0)
+    }
+  }, [player, currentIndex, repeat, playlist.length, goTo])
+
+  // Kept in a ref so the media element's `ended` listener never has to rebind.
+  useEffect(() => {
+    endedRef.current = () => {
+      if (repeat === 'one') {
+        player.seekTo(0)
+        player.play()
+        return
+      }
+      const next = nextIndex()
+      if (next !== null) goTo(next)
+    }
+  })
+
+  /** Appends dropped files; starts playing only when nothing is loaded yet. */
+  const addToQueue = useCallback(
+    (paths: string[]) => {
+      if (paths.length === 0) return
+      const wasEmpty = playlist.length === 0 || currentIndex < 0
+      setMediaError(null)
+      setPlaylist((previous) => [...previous, ...paths])
+      if (wasEmpty) {
+        goTo(0)
+      } else {
+        setQueueOpen(true)
+      }
+    },
+    [playlist.length, currentIndex, goTo],
+  )
+
+  const handleOpenFiles = useCallback(async () => {
+    const filePaths = await window.harissa.openFile()
+    if (!filePaths || filePaths.length === 0) return
+    // Opening from the dialog replaces the queue; dropping files appends to it.
     setMediaError(null)
-    setCurrentIndex((i) => Math.max(i - 1, 0))
-  }
+    setPlaylist(filePaths)
+    goTo(0)
+  }, [goTo])
 
-  const handleNext = () => {
+  const handleRemove = useCallback(
+    (index: number) => {
+      const remaining = playlist.filter((_, i) => i !== index)
+      setPlaylist(remaining)
+
+      if (remaining.length === 0) {
+        setCurrentIndex(-1)
+      } else if (index < currentIndex) {
+        setCurrentIndex(currentIndex - 1)
+      } else if (index === currentIndex) {
+        // The playing track was dropped; slide onto whatever took its place.
+        autoPlayRef.current = player.isPlaying
+        setCurrentIndex(Math.min(currentIndex, remaining.length - 1))
+      }
+    },
+    [playlist, currentIndex, player.isPlaying],
+  )
+
+  const handleClear = useCallback(() => {
+    setPlaylist([])
+    setCurrentIndex(-1)
     setMediaError(null)
-    setCurrentIndex((i) => Math.min(i + 1, playlist.length - 1))
+  }, [])
+
+  const toggleFullscreen = useCallback(() => {
+    const media = mediaRef.current
+    if (!media || !isVideo) return
+    if (document.fullscreenElement) {
+      void document.exitFullscreen()
+    } else {
+      void media.requestFullscreen().catch(() => {
+        /* Some sources refuse fullscreen; the button simply stays inactive. */
+      })
+    }
+  }, [isVideo])
+
+  const cycleRepeat = useCallback(() => {
+    setRepeat((mode) => (mode === 'off' ? 'all' : mode === 'all' ? 'one' : 'off'))
+  }, [])
+
+  // Start the new source once it is ready, but only when the change was a
+  // deliberate play action rather than, say, a track being removed.
+  useEffect(() => {
+    const media = mediaRef.current
+    if (!media) return
+
+    if (!mediaUrl) {
+      // Emptying the queue must also stop the sound and let go of the file.
+      media.pause()
+      media.removeAttribute('src')
+      media.load()
+      return
+    }
+
+    if (!autoPlayRef.current) return
+    autoPlayRef.current = false
+    const onCanPlay = () => player.play()
+    media.addEventListener('canplay', onCanPlay, { once: true })
+    return () => media.removeEventListener('canplay', onCanPlay)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mediaUrl])
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(document.fullscreenElement !== null)
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [])
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (isTypingTarget(e.target)) return
+
+      if (e.ctrlKey || e.metaKey) {
+        switch (e.key.toLowerCase()) {
+          case 'o':
+            e.preventDefault()
+            void handleOpenFiles()
+            return
+          case 'b':
+            e.preventDefault()
+            setSidebarCollapsed((c) => !c)
+            return
+          case 'j':
+            e.preventDefault()
+            setQueueOpen((o) => !o)
+            return
+          default:
+            return
+        }
+      }
+
+      if (!trackPath) return
+
+      switch (e.key) {
+        case ' ':
+          e.preventDefault()
+          player.togglePlay()
+          break
+        case 'ArrowLeft':
+          e.preventDefault()
+          player.stopSeeking(-1)
+          break
+        case 'ArrowRight':
+          e.preventDefault()
+          player.stopSeeking(1)
+          break
+        case 'ArrowUp':
+          e.preventDefault()
+          player.volumeStep(1)
+          break
+        case 'ArrowDown':
+          e.preventDefault()
+          player.volumeStep(-1)
+          break
+        case 'm':
+        case 'M':
+          player.toggleMute()
+          break
+        case 'f':
+        case 'F':
+          toggleFullscreen()
+          break
+        case 'n':
+        case 'N':
+          handleNext()
+          break
+        case 'p':
+        case 'P':
+          handlePrev()
+          break
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [trackPath, player, toggleFullscreen, handleNext, handlePrev, handleOpenFiles])
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDropTarget(false)
+    const paths = Array.from(e.dataTransfer.files)
+      .map((file) => window.harissa.getPathForFile(file))
+      .filter((path): path is string => Boolean(path))
+      .filter((path) => MEDIA_EXTENSIONS.includes(extensionOf(path)))
+    addToQueue(paths)
   }
 
-  const isVideo = mediaPath?.toLowerCase().endsWith('.mp4') ?? false
-  const mediaUrl = mediaPath ? `media://local/${encodeURIComponent(mediaPath)}` : null
+  const canNext =
+    playlist.length > 0 && (currentIndex < playlist.length - 1 || repeat === 'all' || shuffle)
+  const canPrev = trackPath !== null
+
+  // The stage already carries the position in the queue; don't repeat it here.
+  const context = trackPath ? 'Now playing' : 'No media open'
 
   return (
-    <main className="flex h-screen min-h-0 overflow-hidden bg-zinc-950 text-white">
-      <aside className="hidden w-60 flex-shrink-0 border-r border-zinc-800 p-6 md:block">
-        <h1 className="text-2xl font-bold">Harissa</h1>
+    <div
+      className="relative flex h-full flex-col bg-ink"
+      onDragOver={(e) => {
+        e.preventDefault()
+        setIsDropTarget(true)
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget === e.target) setIsDropTarget(false)
+      }}
+      onDrop={handleDrop}
+    >
+      <TopBar
+        sidebarCollapsed={sidebarCollapsed}
+        onToggleSidebar={() => setSidebarCollapsed((c) => !c)}
+        queueOpen={queueOpen}
+        onToggleQueue={() => setQueueOpen((o) => !o)}
+        queueCount={playlist.length}
+        context={context}
+      />
 
-        <nav className="mt-8">
-          <button className="w-full rounded-lg bg-zinc-800 px-4 py-3 text-left">
-            Media
-          </button>
-        </nav>
-      </aside>
+      <div className="flex min-h-0 flex-1">
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed((c) => !c)}
+          queueOpen={queueOpen}
+          onShowNowPlaying={() => setQueueOpen(false)}
+          onShowQueue={() => setQueueOpen(true)}
+          queueCount={playlist.length}
+          onOpenFiles={handleOpenFiles}
+        />
 
-      <section className="flex min-w-0 flex-1 flex-col items-center justify-center gap-6 overflow-y-auto p-4 sm:p-8">
-        <div className="w-full max-w-3xl text-center">
-          <h2 className="text-2xl font-bold sm:text-4xl">Harissa Media Player</h2>
+        <Stage
+          mediaRef={mediaRef}
+          mediaUrl={mediaUrl}
+          trackPath={trackPath}
+          artwork={artwork}
+          isVideo={isVideo}
+          isPlaying={player.isPlaying}
+          duration={player.duration}
+          position={currentIndex + 1}
+          total={playlist.length}
+          error={mediaError}
+          onError={setMediaError}
+          onOpenFiles={handleOpenFiles}
+          onTogglePlay={player.togglePlay}
+        />
 
-          <p className="mt-2 text-sm text-zinc-400 sm:mt-3">
-            Open one or more media files to start playing.
-          </p>
+        <QueuePanel
+          open={queueOpen}
+          tracks={playlist}
+          currentIndex={currentIndex}
+          isPlaying={player.isPlaying}
+          onSelect={(index) => goTo(index)}
+          onRemove={handleRemove}
+          onClear={handleClear}
+          onClose={() => setQueueOpen(false)}
+          onOpenFiles={handleOpenFiles}
+        />
+      </div>
 
-          <button
-            onClick={handleOpenFile}
-            className="mt-4 rounded-lg bg-white px-6 py-3 font-medium text-black transition hover:bg-zinc-200 sm:mt-6"
-          >
-            Open File
-          </button>
+      <PlayerBar
+        player={player}
+        trackPath={trackPath}
+        artwork={artwork}
+        mediaUrl={mediaUrl}
+        isVideo={isVideo}
+        isFullscreen={isFullscreen}
+        canPrev={canPrev}
+        canNext={canNext}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        shuffle={shuffle}
+        onToggleShuffle={() => setShuffle((s) => !s)}
+        repeat={repeat}
+        onCycleRepeat={cycleRepeat}
+        onToggleFullscreen={toggleFullscreen}
+      />
 
-          {mediaPath && (
-            <div className="mt-6 sm:mt-8">
-              <p className="mb-3 truncate text-sm text-zinc-400" title={mediaPath}>
-                {mediaPath}
-              </p>
-
-              {isVideo ? (
-                <video
-                  ref={mediaRef as React.Ref<HTMLVideoElement>}
-                  src={mediaUrl ?? undefined}
-                  onError={(e) => {
-                    const error = e.currentTarget.error
-                    console.error('Media playback error:', error, mediaUrl)
-                    setMediaError(error?.message ?? `Failed to load media (code ${error?.code})`)
-                  }}
-                  className="mx-auto max-h-[50vh] w-full rounded-lg bg-black"
-                />
-              ) : (
-                <audio
-                  ref={mediaRef as React.Ref<HTMLAudioElement>}
-                  src={mediaUrl ?? undefined}
-                  onError={(e) => {
-                    const error = e.currentTarget.error
-                    console.error('Media playback error:', error, mediaUrl)
-                    setMediaError(error?.message ?? `Failed to load media (code ${error?.code})`)
-                  }}
-                  className="hidden"
-                />
-              )}
-
-              {mediaError && (
-                <p className="mt-3 text-sm text-red-400">{mediaError}</p>
-              )}
-
-              <div className="mt-6">
-                <PlayerControls
-                  mediaRef={mediaRef}
-                  trackKey={mediaPath}
-                  isVideo={isVideo}
-                  canPrev={currentIndex > 0}
-                  canNext={currentIndex >= 0 && currentIndex < playlist.length - 1}
-                  onPrev={handlePrev}
-                  onNext={handleNext}
-                />
-              </div>
+      {isDropTarget && (
+        <div className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center bg-ink/70 backdrop-blur-[2px]">
+          <div className="rounded-panel border-2 border-dashed border-flame px-8 py-6 text-center">
+            <div className="font-display text-[20px] font-semibold tracking-[-0.02em] text-cream">
+              Drop to add to the queue
             </div>
-          )}
+            <div className="tnum mt-1 text-[10px] uppercase tracking-[0.2em] text-ash-dim">
+              Audio and video files
+            </div>
+          </div>
         </div>
-      </section>
-    </main>
+      )}
+    </div>
   )
 }
 

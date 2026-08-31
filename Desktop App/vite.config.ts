@@ -11,6 +11,15 @@ export default defineConfig({
     electron([
       {
         entry: 'electron/main.ts',
+        vite: {
+          build: {
+            rolldownOptions: {
+              // Loaded from node_modules at runtime. Bundling it splits the main
+              // process into chunks, which breaks the `electron` default import.
+              external: ['music-metadata'],
+            },
+          },
+        },
       },
       {
         entry: 'electron/preload.ts',

@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎵 Harissa Media Player
 
-## Getting Started
+![Harissa Logo](https://via.placeholder.com/300x200?text=Harissa+Media+Player)
 
-First, run the development server:
+## Welcome to Harissa Media Player
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+A modern, fast, and feature-rich media player for your desktop. Enjoy your favorite music and videos with an intuitive interface and powerful playback controls.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- 🎶 **Wide Format Support** - Play MP3, FLAC, OGG, WAV, AVI, MP4, MKV, and more
+- ⚡ **Lightning Fast** - Optimized for speed and performance
+- 🎨 **Beautiful UI** - Clean, modern, and user-friendly interface
+- 📊 **Playlist Management** - Create, organize, and manage your playlists
+- 🔊 **Advanced Audio Controls** - Volume control, equalizer, and effects
+- 🎯 **Shuffle & Repeat** - Multiple playback modes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Download Now
 
-## Learn More
+Get Harissa Media Player for free and start enjoying your media today!
 
-To learn more about Next.js, take a look at the following resources:
+**System Requirements:**
+- Windows 10 or later
+- 50 MB free disk space
+- 2 GB RAM minimum
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Installation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Download the installer from our website
+2. Run the executable file
+3. Follow the installation wizard
+4. Launch and start playing!
 
-## Deploy on Vercel
+## Quick Start
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **Open Media** - Click "Open" or drag and drop files into the player
+2. **Create Playlist** - Organize your favorite tracks
+3. **Enjoy** - Sit back and enjoy your media!
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Support
+
+For help and support, contact us at support@harissa-player.com
+
+## License
+
+Harissa Media Player is licensed under the MIT License.
+
+---
+
+**Made with ❤️ by the Harissa Team**
