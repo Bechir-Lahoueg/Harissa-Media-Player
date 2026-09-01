@@ -106,7 +106,7 @@ export function useMediaPlayer(
     const media = mediaRef.current
     if (!media) return
     void media.play().catch(() => {
-      /* Autoplay can be refused; the pause event keeps the UI honest. */
+      /* Autoplay may be rejected; the resulting pause event syncs the UI. */
     })
   }, [mediaRef])
 

@@ -8,6 +8,7 @@ import { TopBar } from './components/TopBar'
 import { useArtwork } from './hooks/useArtwork'
 import { useIdle } from './hooks/useIdle'
 import { useMediaPlayer } from './hooks/useMediaPlayer'
+import { useTranslation } from './hooks/useTranslation'
 import { MEDIA_EXTENSIONS, extensionOf, isVideoFile } from './lib/media'
 
 /** Pressing previous within this many seconds goes to the previous track rather than restarting. */
@@ -21,6 +22,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
 }
 
 function App() {
+  const { t } = useTranslation()
   const [playlist, setPlaylist] = useState<string[]>([])
   const [currentIndex, setCurrentIndex] = useState(-1)
   const [mediaError, setMediaError] = useState<string | null>(null)
@@ -108,13 +110,15 @@ function App() {
 
   /** Appends dropped files; starts playing only when nothing is loaded yet. */
   const addToQueue = useCallback(
-    (paths: string[]) => {
+    (paths: string[], playNow = false) => {
       if (paths.length === 0) return
       const wasEmpty = playlist.length === 0 || currentIndex < 0
+      // Appended items start where the old queue ended, unless it was empty.
+      const firstAdded = wasEmpty ? 0 : playlist.length
       setMediaError(null)
       setPlaylist((previous) => [...previous, ...paths])
-      if (wasEmpty) {
-        goTo(0)
+      if (wasEmpty || playNow) {
+        goTo(firstAdded)
       } else {
         setQueueOpen(true)
       }
@@ -156,15 +160,18 @@ function App() {
   }, [])
 
   const toggleFullscreen = useCallback(() => {
-    const shell = shellRef.current
-    if (!shell || !isVideo) return
+    // Leaving is never gated on the media type. The queue can advance from a
+    // video to an audio track while fullscreen, and gating the exit too would
+    // strand the user on a blank screen with a dead Exit button.
     if (document.fullscreenElement) {
       void document.exitFullscreen()
-    } else {
-      void shell.requestFullscreen().catch(() => {
-        /* Refused by the platform; the button simply stays inactive. */
-      })
+      return
     }
+    const shell = shellRef.current
+    if (!shell || !isVideo) return
+    void shell.requestFullscreen().catch(() => {
+      /* Refused by the platform; the button simply stays inactive. */
+    })
   }, [isVideo])
 
   const cycleRepeat = useCallback(() => {
@@ -193,11 +200,30 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mediaUrl])
 
+  // Files handed over by Explorer ("Open with", or double-clicking an associated
+  // type) are an explicit request to play that file, so they jump the queue
+  // rather than queueing silently behind whatever is already running.
+  useEffect(() => {
+    return window.harissa.onOpenFiles((paths) => {
+      const playable = paths.filter((p) => MEDIA_EXTENSIONS.includes(extensionOf(p)))
+      addToQueue(playable, true)
+    })
+  }, [addToQueue])
+
   useEffect(() => {
     const onChange = () => setIsFullscreen(document.fullscreenElement !== null)
     document.addEventListener('fullscreenchange', onChange)
     return () => document.removeEventListener('fullscreenchange', onChange)
   }, [])
+
+  // Fullscreen only makes sense with a picture. If the queue advances from a
+  // video to an audio track, drop back to the window rather than leaving the
+  // user on a black screen.
+  useEffect(() => {
+    if (isFullscreen && !isVideo && document.fullscreenElement) {
+      void document.exitFullscreen()
+    }
+  }, [isFullscreen, isVideo])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -285,11 +311,10 @@ function App() {
   const canPrev = trackPath !== null
 
   // The stage already carries the position in the queue; don't repeat it here.
-  const context = trackPath ? 'Now playing' : 'No media open'
+  const context = trackPath ? t.nowPlaying : t.noMediaOpen
 
-  // In fullscreen the chrome fades once the pointer is still, but stays up while
-  // paused so the state is never a mystery. The cursor goes either way — a still
-  // pointer over a still picture is just clutter.
+  // Controls stay visible while paused so the state is always readable; the
+  // cursor hides on idle regardless.
   const idle = useIdle(isFullscreen, CONTROLS_FADE_MS)
   const controlsVisible = !idle || !player.isPlaying
   const cursorHidden = isFullscreen && idle
@@ -408,10 +433,10 @@ cursorHidden ? 'hide-cursor' : ''
         <div className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center bg-ink/70 backdrop-blur-[2px]">
           <div className="rounded-panel border-2 border-dashed border-flame px-8 py-6 text-center">
             <div className="font-display text-[20px] font-semibold tracking-[-0.02em] text-cream">
-              Drop to add to the queue
+              {t.dropToAdd}
             </div>
             <div className="tnum mt-1 text-[10px] uppercase tracking-[0.2em] text-ash-dim">
-              Audio and video files
+              {t.audioAndVideoFiles}
             </div>
           </div>
         </div>

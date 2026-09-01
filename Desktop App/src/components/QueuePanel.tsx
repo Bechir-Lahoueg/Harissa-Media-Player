@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useTranslation } from '../hooks/useTranslation'
 import { extensionOf, trackTitle } from '../lib/media'
 import { CloseIcon, EqualizerIcon, OpenIcon } from './Icons'
 
@@ -25,6 +26,7 @@ export function QueuePanel({
   onClose,
   onOpenFiles,
 }: QueuePanelProps) {
+  const { t, f, n } = useTranslation()
   const [filter, setFilter] = useState('')
 
   const visible = useMemo(() => {
@@ -42,16 +44,16 @@ export function QueuePanel({
         <div className="flex items-baseline gap-2">
           {/* Body face rather than the display face: Bricolage's Q sweeps a tail
               under the following letters, which reads as a stray rule at this size. */}
-          <h2 className="text-[14px] font-semibold text-cream">Queue</h2>
+          <h2 className="text-[14px] font-semibold text-cream">{t.queue}</h2>
           <span className="tnum text-[10px] uppercase tracking-[0.18em] text-ash-dim">
-            {tracks.length} {tracks.length === 1 ? 'track' : 'tracks'}
+            {tracks.length} {n(tracks.length, t.trackCountOne, t.trackCountOther)}
           </span>
         </div>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Hide queue"
-          title="Hide queue   Ctrl+J"
+          aria-label={t.hideQueue}
+          title={`${t.hideQueue}   Ctrl+J`}
           className="no-drag flex h-7 w-7 items-center justify-center rounded-md text-ash-dim transition hover:bg-raise hover:text-cream"
         >
           <CloseIcon />
@@ -61,7 +63,7 @@ export function QueuePanel({
       {tracks.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
           <p className="text-[12px] leading-relaxed text-ash-dim">
-            The queue is empty. Open a few files and they will line up here.
+            {t.queueEmpty}
           </p>
           <button
             type="button"
@@ -69,7 +71,7 @@ export function QueuePanel({
             className="flex items-center gap-2 rounded-[9px] border border-line px-3 py-1.5 text-[12px] text-ash transition hover:border-ash-dim hover:text-cream"
           >
             <OpenIcon className="h-4 w-4" />
-            Open files
+            {t.openFiles}
           </button>
         </div>
       ) : (
@@ -79,8 +81,8 @@ export function QueuePanel({
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
               onKeyDown={(e) => e.stopPropagation()}
-              placeholder="Filter queue"
-              aria-label="Filter queue"
+              placeholder={t.filterQueue}
+              aria-label={t.filterQueue}
               spellCheck={false}
               className="w-full rounded-[9px] border border-line-soft bg-ink px-3 py-1.5 text-[12px] text-cream placeholder:text-ash-dim focus:border-line focus:outline-none"
             />
@@ -123,7 +125,7 @@ export function QueuePanel({
                           {trackTitle(path)}
                         </span>
                         <span className="tnum block text-[10px] uppercase tracking-wider text-ash-dim">
-                          {extensionOf(path) || 'file'}
+                          {extensionOf(path) || t.file}
                         </span>
                       </span>
                     </button>
@@ -131,8 +133,8 @@ export function QueuePanel({
                     <button
                       type="button"
                       onClick={() => onRemove(index)}
-                      aria-label={`Remove ${trackTitle(path)} from queue`}
-                      title="Remove from queue"
+                      aria-label={`${t.removeFromQueue}: ${trackTitle(path)}`}
+                      title={t.removeFromQueue}
                       className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md text-ash-dim opacity-0 transition hover:bg-raise-hi hover:text-cream focus-visible:opacity-100 group-hover:opacity-100"
                     >
                       <CloseIcon className="h-3 w-3" />
@@ -144,7 +146,7 @@ export function QueuePanel({
 
             {visible.length === 0 && (
               <li className="px-3 py-6 text-center text-[12px] text-ash-dim">
-                No track matches “{filter}”.
+                {f(t.noTrackMatches, { query: filter })}
               </li>
             )}
           </ol>
@@ -155,7 +157,7 @@ export function QueuePanel({
               onClick={onClear}
               className="w-full rounded-[9px] border border-line-soft py-1.5 text-[12px] text-ash-dim transition hover:border-chili/50 hover:text-chili-hi"
             >
-              Clear queue
+              {t.clearQueue}
             </button>
           </div>
         </>

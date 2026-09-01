@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import type { useMediaPlayer } from '../hooks/useMediaPlayer'
+import { useTranslation } from '../hooks/useTranslation'
 import { extensionOf, folderName, trackTitle } from '../lib/media'
 import { Scrubber } from './Scrubber'
 import { Thumbnail } from './Thumbnail'
@@ -61,6 +62,7 @@ export function PlayerBar({
   onCycleRepeat,
   onToggleFullscreen,
 }: PlayerBarProps) {
+  const { t } = useTranslation()
   const hasMedia = trackPath !== null
 
   return (
@@ -76,7 +78,7 @@ export function PlayerBar({
       <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
         <div className="flex items-center gap-1">
           <IconButton
-            label="Shuffle"
+            label={t.shuffle}
             active={shuffle}
             disabled={!hasMedia}
             onClick={onToggleShuffle}
@@ -85,12 +87,12 @@ export function PlayerBar({
             <ShuffleIcon />
           </IconButton>
 
-          <IconButton label="Previous track" disabled={!canPrev} onClick={onPrev}>
+          <IconButton label={t.previousTrack} disabled={!canPrev} onClick={onPrev}>
             <PrevIcon />
           </IconButton>
 
           <HoldButton
-            label="Back 10 seconds — hold to rewind"
+            label={t.seekBackward}
             disabled={!hasMedia}
             onStart={() => player.startSeeking(-1)}
             onEnd={() => player.stopSeeking(-1)}
@@ -100,8 +102,8 @@ export function PlayerBar({
 
           <button
             type="button"
-            aria-label={player.isPlaying ? 'Pause' : 'Play'}
-            title={player.isPlaying ? 'Pause   Space' : 'Play   Space'}
+            aria-label={player.isPlaying ? t.pause : t.play}
+            title={`${player.isPlaying ? t.pause : t.play}   Space`}
             disabled={!hasMedia}
             onClick={player.togglePlay}
             className="ember mx-1.5 flex h-[42px] w-[42px] items-center justify-center rounded-full text-white shadow-[0_4px_16px_-4px_rgba(224,27,39,0.75)] transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-25 disabled:shadow-none"
@@ -110,7 +112,7 @@ export function PlayerBar({
           </button>
 
           <HoldButton
-            label="Forward 10 seconds — hold to fast-forward"
+            label={t.seekForward}
             disabled={!hasMedia}
             onStart={() => player.startSeeking(1)}
             onEnd={() => player.stopSeeking(1)}
@@ -118,18 +120,12 @@ export function PlayerBar({
             <SeekIcon direction="forward" />
           </HoldButton>
 
-          <IconButton label="Next track" disabled={!canNext} onClick={onNext}>
+          <IconButton label={t.nextTrack} disabled={!canNext} onClick={onNext}>
             <NextIcon />
           </IconButton>
 
           <IconButton
-            label={
-              repeat === 'one'
-                ? 'Repeat track'
-                : repeat === 'all'
-                  ? 'Repeat queue'
-                  : 'Repeat off'
-            }
+            label={repeat === 'one' ? t.repeatOne : repeat === 'all' ? t.repeatAll : t.repeatOff}
             active={repeat !== 'off'}
             disabled={!hasMedia}
             onClick={onCycleRepeat}
@@ -151,7 +147,7 @@ export function PlayerBar({
 
       <div className="flex w-[196px] flex-shrink-0 items-center justify-end gap-2">
         <IconButton
-          label={player.isMuted ? 'Unmute   M' : 'Mute   M'}
+          label={`${player.isMuted ? t.unmute : t.mute}   M`}
           disabled={!hasMedia}
           onClick={player.toggleMute}
           size="sm"
@@ -166,7 +162,7 @@ export function PlayerBar({
         />
 
         <IconButton
-          label={isFullscreen ? 'Exit fullscreen   F' : 'Fullscreen   F'}
+          label={`${isFullscreen ? t.exitFullscreen : t.fullscreen}   F`}
           disabled={!hasMedia || !isVideo}
           onClick={onToggleFullscreen}
           size="sm"
@@ -191,6 +187,8 @@ function TrackIdentity({
   isVideo: boolean
   isPlaying: boolean
 }) {
+  const { t } = useTranslation()
+
   return (
     <div className="flex w-[240px] flex-shrink-0 items-center gap-3">
       <div className="relative h-[52px] w-[52px] flex-shrink-0 overflow-hidden rounded-[10px] border border-line bg-raise">
@@ -215,13 +213,13 @@ function TrackIdentity({
             </div>
             <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-ash-dim">
               <span className="tnum rounded border border-line px-1 py-px text-[9px] uppercase tracking-wider">
-                {extensionOf(trackPath) || 'file'}
+                {extensionOf(trackPath) || t.file}
               </span>
-              <span className="truncate">{folderName(trackPath) || 'Local file'}</span>
+              <span className="truncate">{folderName(trackPath) || t.localFile}</span>
             </div>
           </>
         ) : (
-          <div className="text-[13px] text-ash-dim">Nothing queued</div>
+          <div className="text-[13px] text-ash-dim">{t.nothingQueued}</div>
         )}
       </div>
     </div>
@@ -239,6 +237,7 @@ export function VolumeSlider({
   onChange: (value: number) => void
   className?: string
 }) {
+  const { t } = useTranslation()
   const trackRef = useRef<HTMLDivElement>(null)
   const [dragging, setDragging] = useState(false)
 
@@ -254,7 +253,7 @@ export function VolumeSlider({
       ref={trackRef}
       role="slider"
       tabIndex={disabled ? -1 : 0}
-      aria-label="Volume"
+      aria-label={t.volume}
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(volume * 100)}

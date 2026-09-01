@@ -6,9 +6,8 @@ interface ArtState {
 }
 
 /**
- * Cover art carried inside the file — an ID3 APIC frame, an MP4 `covr` atom, and
- * so on — as a data URL. Null when the file has none, so callers can fall back
- * to a video frame or to the Harissa mark.
+ * Cover art embedded in the media file (ID3 APIC, MP4 `covr`, etc.) as a data
+ * URL. Null when the file carries none, so callers can fall back.
  */
 export function useArtwork(trackPath: string | null): string | null {
   const [art, setArt] = useState<ArtState>({ key: null, url: null })

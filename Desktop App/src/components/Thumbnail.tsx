@@ -15,10 +15,12 @@ interface ThumbnailProps {
 }
 
 /**
- * The picture that stands for the current track: its own cover art, else a frame
- * from the video, else the Harissa mark. The video frame comes from a second,
- * muted, never-played element parked a few seconds in — reading one off a canvas
- * would need CORS that the media:// scheme cannot satisfy.
+ * Thumbnail for the current track: embedded cover art, else a video still, else
+ * the app mark.
+ *
+ * The still comes from a second muted <video> seeked to a fixed offset rather
+ * than a canvas readback, which would require CORS headers the media:// scheme
+ * cannot satisfy.
  */
 export function Thumbnail({ artwork, mediaUrl, isVideo, hasTrack, className = '' }: ThumbnailProps) {
   if (artwork) {

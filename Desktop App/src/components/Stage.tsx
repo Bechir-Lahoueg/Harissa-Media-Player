@@ -1,3 +1,4 @@
+import { useTranslation } from '../hooks/useTranslation'
 import logo from '../assets/logoo.png'
 import { extensionOf, folderName, formatTime, trackTitle } from '../lib/media'
 import { EqualizerIcon, OpenIcon } from './Icons'
@@ -36,6 +37,8 @@ export function Stage({
   onOpenFiles,
   onTogglePlay,
 }: StageProps) {
+  const { t, f } = useTranslation()
+
   return (
     <section
       className={`relative flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center ${
@@ -84,8 +87,13 @@ export function Stage({
           <div className={`flex items-end justify-between gap-6 ${isVideo ? '' : 'mt-7'}`}>
             <div className="min-w-0">
               <div className="tnum text-[10px] uppercase tracking-[0.24em] text-ash-dim">
-                Now playing
-                {total > 1 && <span className="text-ash-dim"> · {position} of {total}</span>}
+                {t.nowPlaying}
+                {total > 1 && (
+                  <span className="text-ash-dim">
+                    {' · '}
+                    {f(t.positionOfTotal, { position, total })}
+                  </span>
+                )}
               </div>
               <h1
                 className="font-display mt-2 truncate text-[30px] font-semibold leading-tight tracking-[-0.03em] text-cream"
@@ -95,9 +103,9 @@ export function Stage({
               </h1>
               <div className="mt-1.5 flex items-center gap-2 text-[12px] text-ash">
                 <span className="tnum rounded border border-line px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-ash-dim">
-                  {extensionOf(trackPath) || 'file'}
+                  {extensionOf(trackPath) || t.file}
                 </span>
-                <span className="truncate">{folderName(trackPath) || 'Local file'}</span>
+                <span className="truncate">{folderName(trackPath) || t.localFile}</span>
                 {duration > 0 && (
                   <>
                     <span className="text-ash-dim">·</span>
@@ -110,7 +118,7 @@ export function Stage({
 
           {error && (
             <p className="mt-5 rounded-[10px] border border-chili/40 bg-chili/10 px-4 py-3 text-[13px] text-chili-hi">
-              {error} Try another file, or check that it still exists at that path.
+              {error} {t.playbackErrorHint}
             </p>
           )}
         </div>
@@ -121,11 +129,10 @@ export function Stage({
   )
 }
 
-/**
- * The album cover when the file carries one; otherwise the mark on an ember
- * that brightens while the track plays.
- */
+/** Artwork panel for audio: embedded cover art, or the app mark as a fallback. */
 function AudioArt({ artwork, isPlaying }: { artwork: string | null; isPlaying: boolean }) {
+  const { t } = useTranslation()
+
   return (
     <div className="relative mx-auto flex aspect-[16/7] w-full items-center justify-center overflow-hidden rounded-panel border border-line bg-shell">
       {artwork ? (
@@ -165,13 +172,15 @@ function AudioArt({ artwork, isPlaying }: { artwork: string | null; isPlaying: b
         <span className="text-stem">
           <EqualizerIcon animated={isPlaying} className="h-3 w-3" />
         </span>
-        {isPlaying ? 'Playing' : 'Paused'}
+        {isPlaying ? t.playing : t.paused}
       </span>
     </div>
   )
 }
 
 function EmptyState({ onOpenFiles }: { onOpenFiles: () => void }) {
+  const { t } = useTranslation()
+
   return (
     <div className="rise flex max-w-[440px] flex-col items-center text-center">
       <img
@@ -181,11 +190,10 @@ function EmptyState({ onOpenFiles }: { onOpenFiles: () => void }) {
       />
 
       <h1 className="font-display mt-7 text-[30px] font-semibold leading-tight tracking-[-0.03em] text-cream">
-        Nothing playing yet
+        {t.nothingPlayingYet}
       </h1>
       <p className="mt-2 text-[13px] leading-relaxed text-ash">
-        Open audio or video from this computer. Harissa reads your files where they
-        already live — nothing is copied, uploaded, or indexed.
+        {t.emptyStateBody}
       </p>
 
       <button
@@ -194,19 +202,19 @@ function EmptyState({ onOpenFiles }: { onOpenFiles: () => void }) {
         className="ember mt-6 flex items-center gap-2 rounded-[10px] px-5 py-2.5 text-[13px] font-semibold text-white shadow-[0_6px_22px_-8px_rgba(224,27,39,0.9)] transition hover:brightness-110 active:scale-[0.98]"
       >
         <OpenIcon className="h-[17px] w-[17px]" />
-        Open files
+        {t.openFiles}
       </button>
 
-      <p className="mt-3 text-[12px] text-ash-dim">or drop them anywhere in this window</p>
+      <p className="mt-3 text-[12px] text-ash-dim">{t.orDropFiles}</p>
 
       <dl className="mt-9 grid w-full grid-cols-2 gap-x-6 gap-y-2 border-t border-line-soft pt-6 text-left">
         {[
-          ['Space', 'Play or pause'],
-          ['← / →', 'Back or forward 10s'],
-          ['Ctrl + O', 'Open files'],
-          ['Ctrl + B', 'Toggle sidebar'],
-          ['M', 'Mute'],
-          ['F', 'Fullscreen'],
+          ['Space', t.shortcutPlayPause],
+          ['← / →', t.shortcutSeek],
+          ['Ctrl + O', t.shortcutOpen],
+          ['Ctrl + B', t.shortcutSidebar],
+          ['M', t.shortcutMute],
+          ['F', t.shortcutFullscreen],
         ].map(([keys, action]) => (
           <div key={keys} className="flex items-center justify-between gap-3">
             <dt className="tnum text-[11px] text-ash-dim">{keys}</dt>

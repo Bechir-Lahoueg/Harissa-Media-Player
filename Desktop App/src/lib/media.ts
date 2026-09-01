@@ -35,7 +35,7 @@ export function fileName(filePath: string): string {
   return filePath.split(/[\\/]/).pop() ?? filePath
 }
 
-/** Filename without its extension — the closest thing to a title we have without metadata. */
+/** Filename without its extension, used as the display title when no metadata exists. */
 export function trackTitle(filePath: string): string {
   const base = fileName(filePath)
   const dot = base.lastIndexOf('.')

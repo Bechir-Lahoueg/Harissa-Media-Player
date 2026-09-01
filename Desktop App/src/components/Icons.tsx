@@ -184,7 +184,7 @@ export function CloseIcon({ className = 'h-3.5 w-3.5' }: IconProps) {
   )
 }
 
-/** Three bars that dance while a track plays — the only place green appears. */
+/** Animated level bars shown while a track plays. */
 export function EqualizerIcon({ animated, className = 'h-3.5 w-3.5' }: IconProps & { animated: boolean }) {
   return (
     <svg viewBox="0 0 12 12" className={className} aria-hidden>

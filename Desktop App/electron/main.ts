@@ -4,13 +4,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { handleMediaRequest } from "./mediaProtocol.js";
 
-const { app, BrowserWindow, dialog, ipcMain, protocol } = electron;
+const { BrowserWindow, Menu, app, dialog, ipcMain, protocol, shell } = electron;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const isDev = Boolean(process.env.VITE_DEV_SERVER_URL);
 
-// Stabilizes taskbar grouping/pinning identity on Windows. Must be set before
-// any window is created; harmless to call in dev, where Electron already
-// defaults to a similar id.
+// Stabilizes taskbar grouping/pinning identity on Windows. Must match the appId
+// in package.json, or the running app and the installed app read as different
+// applications and pinning breaks.
 app.setAppUserModelId("com.harissa.player");
 
 /** Kept in step with the --color-ink / --color-shell tokens in src/index.css. */
@@ -19,6 +20,26 @@ const CHROME = {
   shell: "#1A1413",
   ash: "#A2938D",
 };
+
+const AUDIO_EXTENSIONS = ["mp3", "m4a", "aac", "wav", "flac", "ogg", "oga", "opus", "weba"];
+const VIDEO_EXTENSIONS = ["mp4", "m4v", "mkv", "webm", "mov", "avi", "ogv"];
+const MEDIA_EXTENSIONS = new Set([...AUDIO_EXTENSIONS, ...VIDEO_EXTENSIONS]);
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: "media",
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      stream: true,
+      bypassCSP: true,
+    },
+  },
+]);
+
+// Disable battery-saver frame throttling; local playback always decodes at full fidelity.
+app.commandLine.appendSwitch("disable-features", "MediaSessionPreventBatterySaver,BatterySaver");
 
 /**
  * Resolves the window/taskbar icon against `app.getAppPath()` rather than
@@ -39,30 +60,18 @@ function resolveIconPath(): string | undefined {
   return found;
 }
 
-const ICON_PATH = resolveIconPath();
+/** Playable files passed on the command line, e.g. from "Open with" or a shortcut. */
+function mediaPathsFromArgv(argv: string[]): string[] {
+  return argv.slice(1).filter((arg) => {
+    if (arg.startsWith("-")) return false;
+    const ext = path.extname(arg).slice(1).toLowerCase();
+    return MEDIA_EXTENSIONS.has(ext) && fs.existsSync(arg);
+  });
+}
 
-const AUDIO_EXTENSIONS = ["mp3", "m4a", "aac", "wav", "flac", "ogg", "oga", "opus", "weba"];
-const VIDEO_EXTENSIONS = ["mp4", "m4v", "mkv", "webm", "mov", "avi", "ogv"];
+let mainWindow: electron.BrowserWindow | null = null;
 
-// Disable battery-saver frame throttling; local playback always decodes at full fidelity.
-app.commandLine.appendSwitch("disable-features", "MediaSessionPreventBatterySaver,BatterySaver");
-
-protocol.registerSchemesAsPrivileged([
-  {
-    scheme: "media",
-    privileges: {
-      standard: true,
-      secure: true,
-      supportFetchAPI: true,
-      stream: true,
-      bypassCSP: true,
-    },
-  },
-]);
-
-app.whenReady().then(() => {
-  protocol.handle("media", handleMediaRequest);
-
+function createWindow() {
   const win = new BrowserWindow({
     width: 1240,
     height: 820,
@@ -71,8 +80,7 @@ app.whenReady().then(() => {
     resizable: true,
     show: false,
     title: "Harissa",
-    // Replaces Electron's default icon in the taskbar, Alt-Tab, and window chrome.
-    icon: ICON_PATH,
+    icon: resolveIconPath(),
     backgroundColor: CHROME.ink,
     // Native window buttons, drawn over the app's own titlebar strip.
     titleBarStyle: "hidden",
@@ -91,20 +99,90 @@ app.whenReady().then(() => {
 
   win.once("ready-to-show", () => win.show());
 
-  if (process.env.VITE_DEV_SERVER_URL) {
-    win.loadURL(process.env.VITE_DEV_SERVER_URL);
+  // Nothing in the app opens external URLs; refuse both popups and in-place
+  // navigation so a stray link can never replace the player with a web page.
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith("https://")) void shell.openExternal(url);
+    return { action: "deny" };
+  });
+  win.webContents.on("will-navigate", (event, url) => {
+    if (url !== win.webContents.getURL()) event.preventDefault();
+  });
+
+  if (isDev) {
+    win.loadURL(process.env.VITE_DEV_SERVER_URL!).catch((error: unknown) => {
+      console.error("Harissa: dev server unreachable:", error);
+    });
   } else {
-    win.loadFile("dist/index.html");
+    // Anchored to the app root rather than a relative path: once packaged the
+    // working directory is wherever the .exe was launched from, not the app.
+    win.loadFile(path.join(app.getAppPath(), "dist", "index.html")).catch((error: unknown) => {
+      console.error("Harissa: failed to load the app:", error);
+      dialog.showErrorBox("Harissa", "The application files could not be loaded.");
+    });
   }
-});
+
+  return win;
+}
+
+/** Hands files to the renderer once it is ready to receive them. */
+function openPaths(win: electron.BrowserWindow, paths: string[]) {
+  if (paths.length === 0) return;
+  if (win.webContents.isLoading()) {
+    win.webContents.once("did-finish-load", () => win.webContents.send("harissa:open", paths));
+  } else {
+    win.webContents.send("harissa:open", paths);
+  }
+}
+
+// A media player must not open twice over itself: a second launch (including
+// "Open with" from Explorer) hands its files to the running window instead.
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on("second-instance", (_event, argv) => {
+    if (!mainWindow) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+    openPaths(mainWindow, mediaPathsFromArgv(argv));
+  });
+
+  app.whenReady().then(() => {
+    protocol.handle("media", handleMediaRequest);
+
+    // Removes Electron's stock menu, whose accelerators would otherwise ship to
+    // end users: Ctrl+R reloads and wipes playback state, Ctrl+Shift+I and F11
+    // expose developer tooling. The app has no menu bar of its own by design.
+    Menu.setApplicationMenu(null);
+
+    mainWindow = createWindow();
+    openPaths(mainWindow, mediaPathsFromArgv(process.argv));
+  });
+}
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
 
+app.on("browser-window-created", (_event, win) => {
+  // Menu.setApplicationMenu(null) drops the menu accelerators, but F12 and
+  // Ctrl+Shift+I are wired directly into Chromium, so they are refused here too.
+  win.webContents.on("before-input-event", (event, input) => {
+    if (isDev || input.type !== "keyDown") return;
+    const key = input.key.toLowerCase();
+    const devToolsChord = input.control && input.shift && (key === "i" || key === "j" || key === "c");
+    const reloadChord = input.control && (key === "r" || key === "w");
+    if (key === "f12" || devToolsChord || reloadChord) {
+      event.preventDefault();
+    }
+  });
+});
+
+/** The UI language to use, taken from the Windows display language. */
+ipcMain.handle("app:locale", () => app.getLocale());
+
 ipcMain.handle("dialog:openFile", async () => {
   const result = await dialog.showOpenDialog({
-    title: "Open media",
     properties: ["openFile", "multiSelections"],
     filters: [
       { name: "Media", extensions: [...AUDIO_EXTENSIONS, ...VIDEO_EXTENSIONS] },

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 
 /**
- * True once the pointer and keyboard have been quiet for `delayMs`.
- * The fullscreen player uses it to fade its chrome away and leave only the film.
+ * True once the pointer and keyboard have been idle for `delayMs`.
+ * Used to auto-hide the fullscreen controls and cursor.
  */
 export function useIdle(enabled: boolean, delayMs: number): boolean {
   const [idle, setIdle] = useState(false)

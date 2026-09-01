@@ -1,5 +1,6 @@
 import logo from '../assets/logoo.png'
 import type { useMediaPlayer } from '../hooks/useMediaPlayer'
+import { useTranslation } from '../hooks/useTranslation'
 import { extensionOf, folderName, trackTitle } from '../lib/media'
 import {
   EqualizerIcon,
@@ -38,12 +39,11 @@ interface FullscreenPlayerProps {
 }
 
 /**
- * The chrome that floats over the film in fullscreen.
+ * Fullscreen playback chrome, overlaid on the video.
  *
- * Same vocabulary as the docked bar — ember scrubber, mono timecodes, the mark —
- * but scaled up and laid on scrims that glow warm from the bottom edge, as if the
- * controls were sitting on coals. Fades out completely once the pointer goes
- * quiet, leaving nothing over the picture.
+ * Uses the same controls as the docked player bar at a larger scale, over
+ * gradient scrims that keep the text legible against arbitrary video content.
+ * Hidden entirely once the pointer goes idle; see useIdle.
  */
 export function FullscreenPlayer({
   player,
@@ -61,6 +61,7 @@ export function FullscreenPlayer({
   onCycleRepeat,
   onExit,
 }: FullscreenPlayerProps) {
+  const { t, f } = useTranslation()
   const hasMedia = trackPath !== null
   const interactive = visible ? 'pointer-events-auto' : 'pointer-events-none'
 
@@ -91,13 +92,11 @@ export function FullscreenPlayer({
                 <span className="text-stem">
                   <EqualizerIcon animated={player.isPlaying} className="h-3 w-3" />
                 </span>
-                <span>Now playing</span>
+                <span>{t.nowPlaying}</span>
                 {total > 1 && (
                   <>
                     <span className="text-line">/</span>
-                    <span>
-                      {position} of {total}
-                    </span>
+                    <span>{f(t.positionOfTotal, { position, total })}</span>
                   </>
                 )}
               </div>
@@ -105,14 +104,14 @@ export function FullscreenPlayer({
                 className="font-display mt-1.5 truncate text-[26px] font-semibold leading-tight tracking-[-0.035em] text-cream"
                 title={trackPath ?? undefined}
               >
-                {trackPath ? trackTitle(trackPath) : 'Nothing playing'}
+                {trackPath ? trackTitle(trackPath) : t.nothingPlaying}
               </h1>
               {trackPath && (
                 <div className="mt-1 flex items-center gap-2 text-[12px] text-ash-dim">
                   <span className="tnum rounded border border-line px-1.5 py-0.5 text-[9px] uppercase tracking-wider">
-                    {extensionOf(trackPath) || 'file'}
+                    {extensionOf(trackPath) || t.file}
                   </span>
-                  <span className="truncate">{folderName(trackPath) || 'Local file'}</span>
+                  <span className="truncate">{folderName(trackPath) || t.localFile}</span>
                 </div>
               )}
             </div>
@@ -121,12 +120,12 @@ export function FullscreenPlayer({
           <button
             type="button"
             onClick={onExit}
-            aria-label="Exit fullscreen"
-            title="Exit fullscreen   F or Esc"
+            aria-label={t.exitFullscreen}
+            title={`${t.exitFullscreen}   F / Esc`}
             className={`flex flex-shrink-0 items-center gap-2 rounded-full border border-line bg-ink/50 px-4 py-2 text-[12px] text-ash backdrop-blur-sm transition hover:border-chili hover:bg-ink/70 hover:text-cream ${interactive}`}
           >
             <ExitFullscreenIcon className="h-4 w-4" />
-            <span>Exit</span>
+            <span>{t.exit}</span>
           </button>
         </div>
       </div>
@@ -142,7 +141,7 @@ export function FullscreenPlayer({
           <button
             type="button"
             onClick={player.togglePlay}
-            aria-label="Play"
+            aria-label={t.play}
             className={`ember relative flex h-[92px] w-[92px] items-center justify-center rounded-full text-white shadow-[0_12px_54px_-10px_rgba(224,27,39,0.95)] transition hover:brightness-110 active:scale-95 ${interactive}`}
           >
             <PlayIcon className="h-11 w-11" />
@@ -171,7 +170,7 @@ export function FullscreenPlayer({
             {/* Modes on the left, transport in the middle, output on the right. */}
             <div className="flex w-[200px] flex-shrink-0 items-center gap-2">
               <IconButton
-                label="Shuffle"
+                label={t.shuffle}
                 active={shuffle}
                 disabled={!hasMedia}
                 onClick={onToggleShuffle}
@@ -179,13 +178,7 @@ export function FullscreenPlayer({
                 <ShuffleIcon className="h-[18px] w-[18px]" />
               </IconButton>
               <IconButton
-                label={
-                  repeat === 'one'
-                    ? 'Repeat track'
-                    : repeat === 'all'
-                      ? 'Repeat queue'
-                      : 'Repeat off'
-                }
+                label={repeat === 'one' ? t.repeatOne : repeat === 'all' ? t.repeatAll : t.repeatOff}
                 active={repeat !== 'off'}
                 disabled={!hasMedia}
                 onClick={onCycleRepeat}
@@ -199,12 +192,12 @@ export function FullscreenPlayer({
             </div>
 
             <div className="flex items-center gap-2">
-              <IconButton label="Previous track" disabled={!canPrev} onClick={onPrev} size="lg">
+              <IconButton label={t.previousTrack} disabled={!canPrev} onClick={onPrev} size="lg">
                 <PrevIcon className="h-5 w-5" />
               </IconButton>
 
               <HoldButton
-                label="Back 10 seconds — hold to rewind"
+                label={t.seekBackward}
                 disabled={!hasMedia}
                 onStart={() => player.startSeeking(-1)}
                 onEnd={() => player.stopSeeking(-1)}
@@ -215,8 +208,8 @@ export function FullscreenPlayer({
 
               <button
                 type="button"
-                aria-label={player.isPlaying ? 'Pause' : 'Play'}
-                title={player.isPlaying ? 'Pause   Space' : 'Play   Space'}
+                aria-label={player.isPlaying ? t.pause : t.play}
+                title={`${player.isPlaying ? t.pause : t.play}   Space`}
                 disabled={!hasMedia}
                 onClick={player.togglePlay}
                 className="ember mx-3 flex h-[62px] w-[62px] items-center justify-center rounded-full text-white shadow-[0_8px_30px_-6px_rgba(224,27,39,0.9)] transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-25 disabled:shadow-none"
@@ -229,7 +222,7 @@ export function FullscreenPlayer({
               </button>
 
               <HoldButton
-                label="Forward 10 seconds — hold to fast-forward"
+                label={t.seekForward}
                 disabled={!hasMedia}
                 onStart={() => player.startSeeking(1)}
                 onEnd={() => player.stopSeeking(1)}
@@ -238,14 +231,14 @@ export function FullscreenPlayer({
                 <SeekIcon direction="forward" className="h-5 w-5" />
               </HoldButton>
 
-              <IconButton label="Next track" disabled={!canNext} onClick={onNext} size="lg">
+              <IconButton label={t.nextTrack} disabled={!canNext} onClick={onNext} size="lg">
                 <NextIcon className="h-5 w-5" />
               </IconButton>
             </div>
 
             <div className="flex w-[200px] flex-shrink-0 items-center justify-end gap-2.5">
               <IconButton
-                label={player.isMuted ? 'Unmute   M' : 'Mute   M'}
+                label={`${player.isMuted ? t.unmute : t.mute}   M`}
                 disabled={!hasMedia}
                 onClick={player.toggleMute}
               >

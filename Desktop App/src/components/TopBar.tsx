@@ -1,3 +1,4 @@
+import { useTranslation } from '../hooks/useTranslation'
 import logo from '../assets/logoo.png'
 import { QueueIcon, SidebarIcon } from './Icons'
 
@@ -11,8 +12,8 @@ interface TopBarProps {
 }
 
 /**
- * Doubles as the window's titlebar: the whole strip is draggable, controls opt
- * back out, and the right end keeps clear of the native window buttons.
+ * Application titlebar. The strip is a drag region; interactive controls opt out
+ * via `no-drag`, and the right edge is padded to clear the native window buttons.
  */
 export function TopBar({
   sidebarCollapsed,
@@ -22,6 +23,8 @@ export function TopBar({
   queueCount,
   context,
 }: TopBarProps) {
+  const { t } = useTranslation()
+
   return (
     <header className="drag z-30 flex h-[52px] flex-shrink-0 items-center gap-3 border-b border-line-soft bg-shell pl-4 pr-2">
       <div className="flex items-center gap-3">
@@ -40,8 +43,8 @@ export function TopBar({
       <button
         type="button"
         onClick={onToggleSidebar}
-        aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        title={sidebarCollapsed ? 'Expand sidebar   Ctrl+B' : 'Collapse sidebar   Ctrl+B'}
+        aria-label={sidebarCollapsed ? t.expandSidebar : t.collapseSidebar}
+        title={`${sidebarCollapsed ? t.expandSidebar : t.collapseSidebar}   Ctrl+B`}
         className="no-drag flex h-8 w-8 items-center justify-center rounded-[9px] text-ash-dim transition hover:bg-raise hover:text-cream"
       >
         <SidebarIcon className={`h-[17px] w-[17px] ${sidebarCollapsed ? '-scale-x-100' : ''}`} />
@@ -55,8 +58,8 @@ export function TopBar({
         type="button"
         onClick={onToggleQueue}
         aria-pressed={queueOpen}
-        aria-label={queueOpen ? 'Hide queue' : 'Show queue'}
-        title={queueOpen ? 'Hide queue   Ctrl+J' : 'Show queue   Ctrl+J'}
+        aria-label={queueOpen ? t.hideQueue : t.showQueue}
+        title={`${queueOpen ? t.hideQueue : t.showQueue}   Ctrl+J`}
         className={`no-drag flex h-8 items-center gap-2 rounded-[9px] px-2.5 text-[12px] transition ${
           queueOpen ? 'bg-raise text-cream' : 'text-ash-dim hover:bg-raise hover:text-cream'
         }`}

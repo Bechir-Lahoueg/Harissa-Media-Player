@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from '../hooks/useTranslation'
 import { formatTime, parseTime } from '../lib/media'
 
 interface ScrubberProps {
@@ -11,9 +12,10 @@ interface ScrubberProps {
 }
 
 /**
- * The scrubber is the one loud element in the chrome: the played portion burns
- * from chili red into flame orange, and the elapsed timecode is editable, so a
- * track can be started at 2:00 by typing it rather than by aiming at a pixel.
+ * Seek bar with an editable elapsed timecode.
+ *
+ * The timecode doubles as an input so a position can be typed exactly (e.g.
+ * "2:00") instead of being hit with the pointer.
  */
 export function Scrubber({
   currentTime,
@@ -22,6 +24,7 @@ export function Scrubber({
   onSeek,
   size = 'md',
 }: ScrubberProps) {
+  const { t } = useTranslation()
   const large = size === 'lg'
   const barRef = useRef<HTMLDivElement>(null)
   const [isScrubbing, setIsScrubbing] = useState(false)
@@ -82,7 +85,7 @@ export function Scrubber({
           ref={barRef}
           role="slider"
           tabIndex={disabled ? -1 : 0}
-          aria-label="Seek"
+          aria-label={t.seek}
           aria-valuemin={0}
           aria-valuemax={Math.round(duration)}
           aria-valuenow={Math.round(currentTime)}
@@ -147,6 +150,7 @@ interface TimeFieldProps {
 
 /** Click the elapsed time, type a timecode, press Enter to jump there. */
 function TimeField({ seconds, max, disabled, onCommit, large }: TimeFieldProps) {
+  const { t } = useTranslation()
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const [invalid, setInvalid] = useState(false)
@@ -181,7 +185,7 @@ function TimeField({ seconds, max, disabled, onCommit, large }: TimeFieldProps) 
         value={draft}
         autoFocus
         spellCheck={false}
-        aria-label="Jump to time"
+        aria-label={t.jumpToTime}
         onChange={(e) => {
           setDraft(e.target.value)
           setInvalid(false)
@@ -204,7 +208,7 @@ function TimeField({ seconds, max, disabled, onCommit, large }: TimeFieldProps) 
       type="button"
       onClick={beginEditing}
       disabled={disabled}
-      title="Jump to a timecode — click and type, e.g. 2:00"
+      title={t.jumpToTimeHint}
       className={`tnum flex-shrink-0 rounded-md border border-transparent text-center text-cream transition-colors hover:border-line hover:bg-raise/70 disabled:cursor-not-allowed disabled:text-ash-dim disabled:hover:border-transparent disabled:hover:bg-transparent ${
         large ? 'w-[84px] px-2 py-1 text-[15px]' : 'w-[62px] px-1.5 py-[3px] text-[12px]'
       }`}
