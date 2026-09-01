@@ -13,15 +13,19 @@ import { platform, site } from "@/lib/site";
 const WHAT_IT_DOES = [
   {
     title: "Music and video",
-    body: "MP3s and MP4s play out of the box. WAV, FLAC, OGG, M4A, MKV, WebM and MOV open too.",
+    body: "MP3, M4A, AAC, WAV, FLAC, OGG and Opus for audio. MP4, M4V, MKV, WebM, MOV and more for video.",
   },
   {
     title: "Open however you like",
-    body: "Use the normal Windows file picker, or drag files straight onto the window.",
+    body: "Use the normal Windows file picker, drag files onto the window, or right-click one in Explorer.",
   },
   {
     title: "The controls you expect",
     body: "Play, pause, skip through with the progress bar, volume, mute, fullscreen.",
+  },
+  {
+    title: "Jump to any moment",
+    body: "Click the elapsed time and type where you want to be — 2:00, or 1:02:03 — instead of aiming at the bar.",
   },
   {
     title: "A queue",
@@ -29,15 +33,19 @@ const WHAT_IT_DOES = [
   },
   {
     title: "Cover art",
-    body: "If the artwork is inside the file, you see it while the track plays.",
+    body: "If the artwork is inside the file, you see it while the track plays. Video gets a frame from the film.",
   },
   {
-    title: "Starts empty, stays quick",
-    body: "No library to build first and no waiting around for a scan to finish.",
+    title: "Fullscreen that gets out of the way",
+    body: "The controls and the mouse pointer fade after a couple of seconds, and return the moment you move.",
+  },
+  {
+    title: "Speaks your language",
+    body: "Follows your Windows display language. English, French, Arabic, Spanish and German are translated.",
   },
   {
     title: "Works offline",
-    body: "There is no account and no server behind it, so it plays with the wifi off.",
+    body: "No account, no library to build, no server behind it. It plays with the wifi off.",
   },
 ];
 
@@ -252,11 +260,11 @@ export default function Home() {
       <section className="mx-auto max-w-[1180px] px-5 pt-16 sm:px-8">
         <div className="rounded-panel bg-shell/40 px-6 py-10 text-center sm:px-10">
           <h2 className="mx-auto max-w-[24ch] font-display text-[25px] font-semibold tracking-tight text-cream sm:text-[29px]">
-            Harissa is nearly ready
+            Version 1.0.0 is here
           </h2>
           <p className="mx-auto mt-3 max-w-[50ch] text-[15px] leading-relaxed text-ash">
-            The player works. What is left is packaging it into an installer for{" "}
-            {platform.os}. Follow the repository and you will know when it lands.
+            The player and its {platform.os} installer are both built. Follow the
+            repository to know the moment the download goes live.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <a

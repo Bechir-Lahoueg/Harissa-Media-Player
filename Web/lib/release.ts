@@ -1,26 +1,12 @@
+
 /**
- * ────────────────────────────────────────────────────────────────────────
- *  THE DOWNLOAD LINK GOES HERE.
+ * Release metadata for the download panel.
  *
- *  This is the only file you need to touch when the installer is ready.
- *  Fill in the fields below and change `status` to "released", and the
- *  download button turns on everywhere it appears: the home page, the
- *  installation page and the releases page.
- *
- *  Example of a finished release:
- *
- *    version:     "1.0.0",
- *    date:        "2026-04-12",
- *    fileName:    "Harissa-Setup-1.0.0.exe",
- *    size:        "78 MB",
- *    downloadUrl: "https://github.com/…/releases/download/v1.0.0/Harissa-Setup-1.0.0.exe",
- *    sha256:      "9f2c…",
- *    notesUrl:    "https://github.com/…/releases/tag/v1.0.0",
- *    status:      "released",
- *
- *  Leave a field as null if you do not have it. Only `downloadUrl` and
- *  `status` decide whether the button works.
- * ────────────────────────────────────────────────────────────────────────
+ * `downloadUrl` and `status` together decide whether the button is live: the
+ * panel falls back to build-from-source instructions until both are set. The
+ * installer ships as a GitHub release asset rather than a file in `public/`,
+ * because it is larger than GitHub's 100 MB per-file limit for repository
+ * contents.
  */
 export interface Release {
   /** Version string, e.g. "1.0.0". */
@@ -41,20 +27,19 @@ export interface Release {
 }
 
 export const latestRelease: Release = {
-  version: null,
-  date: null,
-  fileName: null,
-  size: null,
-  downloadUrl: null, // ← paste the installer link here
-  sha256: null,
-  notesUrl: null,
-  status: "unreleased", // ← change to "released"
+  version: "1.0.0",
+  date: "2026-09-01",
+  fileName: "Harissa-Media-Player-Setup-1.0.0.exe",
+  size: "107 MB",
+  downloadUrl:
+    "https://github.com/Bechir-Lahoueg/Harissa-Media-Player/releases/download/v1.0.0/Harissa-Media-Player-Setup-1.0.0.exe",
+  sha256: "b851ff9434602bc13afb3793b2fcaaeef1916bc5d7da1f21cb9ffb5c6a96b5ea",
+  notesUrl:
+    "https://github.com/Bechir-Lahoueg/Harissa-Media-Player/releases/tag/v1.0.0",
+  status: "released",
 };
 
-/**
- * Older versions, newest first. Empty until there is more than one release.
- * Move the previous `latestRelease` object in here when you publish a new one.
- */
+
 export const releaseHistory: Release[] = [];
 
 export function isReleased(release: Release): boolean {

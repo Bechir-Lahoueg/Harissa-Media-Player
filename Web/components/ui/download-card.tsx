@@ -12,12 +12,11 @@ function formatDate(iso: string): string {
 }
 
 /**
- * The download panel.
+ * The download panel, driven entirely by `lib/release.ts`.
  *
- * Everything it shows comes from `lib/release.ts`. While there is no installer
- * it says so and points at the two things you can actually do today. Once the
- * release object is filled in, the same component becomes a download button
- * with the version, size and checksum beside it.
+ * Renders a download button with the version, size and checksum when a release
+ * is live, and build-from-source instructions when one is not, so the page
+ * never offers a link that does not resolve.
  */
 export function DownloadCard({ release = latestRelease }: { release?: Release }) {
   const released = isReleased(release);

@@ -1,0 +1,73 @@
+# Repository-wide ignores.
+#
+# "Desktop App" and "Web" each keep their own .gitignore for their build output.
+# This file covers the repository root and anything the per-project files miss.
+
+# ── Never commit these ──────────────────────────────────────────────────────
+# Code-signing material. A leaked certificate lets anyone ship software as you,
+# and it cannot be un-leaked once it is in git history.
+*.pfx
+*.p12
+*.pvk
+*.spc
+*.snk
+*.keystore
+*.jks
+*.pem
+*.key
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# ── Build artifacts ─────────────────────────────────────────────────────────
+# Installers belong on the Releases page, not in the repository. GitHub rejects
+# any file over 100 MB, and the Harissa installer is larger than that, so a
+# committed build would wedge the push and have to be scrubbed from history.
+*.exe
+*.msi
+*.appx
+*.msix
+*.blockmap
+*.nupkg
+*.7z
+*.zip
+*.tar.gz
+
+# Dependencies, in case anything is ever installed at the root
+node_modules/
+
+# Compiled output.
+# `build/` is anchored to the repository root on purpose: electron-builder uses
+# "Desktop App/build" for installer *inputs* (icon.ico, installer.nsh), which
+# have to stay in version control.
+dist/
+dist-electron/
+out/
+release/
+/build/
+
+# ── Noise ───────────────────────────────────────────────────────────────────
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Windows and macOS shell droppings
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.DS_Store
+
+# Caches and scratch files
+*.tsbuildinfo
+*.tmp
+*.temp
+coverage/

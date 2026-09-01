@@ -1,9 +1,8 @@
 /**
  * The V1 feature list and the roadmap, kept as data.
  *
- * `status` is deliberately explicit on every row. The website is documentation
- * for software that has not shipped a binary yet, so a reader must always be
- * able to tell an implemented capability from an intended one.
+ * `status` is deliberately explicit on every row, so a reader can always tell an
+ * implemented capability from an intended one.
  *
  *   "built"    — implemented in the application source today
  *   "v1"       — in scope for the V1 release, not finished
@@ -66,14 +65,27 @@ export const featureGroups: FeatureGroup[] = [
       },
       {
         title: "Fullscreen video",
-        description: "Fill the display with the video surface and return with Escape.",
-        status: "v1",
+        description:
+          "Fills the display with its own controls. They fade out, along with the mouse pointer, after two seconds of stillness, and come back on the first movement.",
+        status: "built",
       },
       {
-        title: "Further audio and video formats",
+        title: "Audio and video formats",
         description:
-          "The open dialog also offers WAV, FLAC, OGG, M4A, MKV, WebM, MOV and more. They play when the media engine can decode them; MP3 and MP4 are the two V1 guarantees.",
-        status: "v1",
+          "MP3, M4A, AAC, WAV, FLAC, OGG, OGA, Opus and WebA for audio; MP4, M4V, MKV, WebM, MOV, AVI and OGV for video. A file plays when the codec inside it is one the media engine can decode, which covers most everyday files.",
+        status: "built",
+      },
+      {
+        title: "Jump to a timecode",
+        description:
+          "Click the elapsed time and type where you want to be — 2:00, 1:02:03, or just 90 for ninety seconds — instead of aiming at a pixel on the bar.",
+        status: "built",
+      },
+      {
+        title: "Accurate seeking in large files",
+        description:
+          "Files are served to the player with byte-range support, so dragging the bar jumps straight to that point rather than replaying from the start.",
+        status: "built",
       },
       {
         title: "Queue",
@@ -93,9 +105,9 @@ export const featureGroups: FeatureGroup[] = [
         status: "built",
       },
       {
-        title: "Cover art",
+        title: "Cover art and thumbnails",
         description:
-          "Artwork stored inside a file is read out and shown while the track plays.",
+          "Artwork stored inside a file is read out and shown while the track plays. Video with no embedded artwork gets a still frame lifted from the film instead.",
         status: "built",
       },
     ],
@@ -131,8 +143,27 @@ export const featureGroups: FeatureGroup[] = [
       },
       {
         title: "Windows installer",
-        description: "A signed setup executable for the first public release.",
-        status: "v1",
+        description:
+          "An NSIS setup executable that installs for the current user, adds Start Menu and desktop shortcuts, and removes itself cleanly. It is not code-signed, so Windows shows a SmartScreen warning the first time it runs.",
+        status: "built",
+      },
+      {
+        title: "Opens files from Explorer",
+        description:
+          "Harissa registers itself as an available player for the media types it supports, so it appears under “Open with”. It does not take over your existing default — that stays your choice.",
+        status: "built",
+      },
+      {
+        title: "One window",
+        description:
+          "Opening a second file hands it to the window already running instead of starting a rival copy of the player.",
+        status: "built",
+      },
+      {
+        title: "Follows your Windows language",
+        description:
+          "The interface reads the Windows display language and switches to it. English, French, Arabic, Spanish and German are translated; anything else falls back to English.",
+        status: "built",
       },
     ],
   },
@@ -168,9 +199,15 @@ export const roadmapAfterV1: Feature[] = [
     status: "planned",
   },
   {
-    title: "Windows integration",
+    title: "Deeper Windows integration",
     description:
-      "File associations, jump lists and the system media transport controls.",
+      "Jump lists, thumbnail toolbar buttons, and the system media transport controls that appear on the volume flyout.",
+    status: "planned",
+  },
+  {
+    title: "A code-signed installer",
+    description:
+      "Signing would remove the SmartScreen warning on first run, and let the app install on machines with Smart App Control switched on.",
     status: "planned",
   },
   {

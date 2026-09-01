@@ -9,7 +9,7 @@ import { platform, site } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Installation",
   description:
-    "Download Harissa when the installer is ready, or run it from the source code today.",
+    "How to install Harissa on Windows 10 and 11, what to expect from the SmartScreen warning, and how to run it from source.",
 };
 
 export default function InstallationPage() {
@@ -18,7 +18,7 @@ export default function InstallationPage() {
       <DocHeader
         section="Start here"
         title="Installation"
-        summary="Two ways to get Harissa. The installer is the one most people will want, and it is not ready yet. Running from source works today if you have Node.js."
+        summary="Two ways to get Harissa. The installer is the one most people will want. Running from source works too, if you have Node.js."
       />
 
       <div className="mt-9">
@@ -26,22 +26,45 @@ export default function InstallationPage() {
       </div>
 
       <div className="prose mt-12">
-        <h2 id="installing">Installing, once the setup file exists</h2>
-        <p>
-          It will be the ordinary Windows routine, with nothing unusual about it:
-        </p>
+        <h2 id="installing">Installing</h2>
+        <p>The ordinary Windows routine, with one detour explained below:</p>
         <ol>
           <li>Download the setup file from the panel above.</li>
-          <li>Run it, and say yes to the Windows security prompt.</li>
+          <li>
+            Run it. Windows will warn you about an unrecognised app — see{" "}
+            <a href="#smartscreen">the next section</a> for how to get past it.
+          </li>
           <li>Pick where to install it, or accept the suggested folder.</li>
           <li>Open Harissa from the Start menu.</li>
         </ol>
+        <p>
+          It installs for your user account only, so it never asks for
+          administrator rights. To remove it, use{" "}
+          <strong>Settings → Apps → Installed apps</strong> and choose
+          Harissa Media Player, the same as any other program.
+        </p>
 
-        <Callout tone="planned" title="Still to be confirmed">
-          The exact file name, where it installs by default, whether it asks for
-          administrator rights, and how you uninstall it all depend on how the
-          installer ends up being built. Those details go in once there is a real
-          installer to check them against.
+        <h2 id="smartscreen">The Windows warning</h2>
+        <p>
+          The installer is not code-signed, so the first time you run it Windows
+          shows a blue <strong>&ldquo;Windows protected your PC&rdquo;</strong>{" "}
+          panel. Click <strong>More info</strong>, then{" "}
+          <strong>Run anyway</strong>.
+        </p>
+        <p>
+          This is not a sign that anything is wrong with the file. A signing
+          certificate costs money every year, and Harissa does not have one yet.
+          If you would rather verify the download yourself, check its SHA-256
+          against the checksum published with the release.
+        </p>
+
+        <Callout tone="planned" title="Smart App Control">
+          On a clean Windows 11 install, Smart App Control may block the
+          installer outright, with no &ldquo;Run anyway&rdquo; option. It only
+          permits signed or well-known apps, and it cannot be told to make an
+          exception for one file. Until Harissa is signed, the ways around it
+          are to run it from source, or to install on a machine where Smart App
+          Control is off.
         </Callout>
 
         <h2 id="requirements">What you need</h2>
@@ -50,7 +73,7 @@ export default function InstallationPage() {
             <strong>Windows</strong> {platform.os}, {platform.arch}
           </li>
           <li>
-            <strong>Disk space</strong> to be measured from the first real build
+            <strong>Disk space</strong> around 400 MB once installed
           </li>
           <li>
             <strong>Internet</strong> only to download it. Harissa never needs a
@@ -64,10 +87,24 @@ export default function InstallationPage() {
 
         <h2 id="file-types">Opening files straight from Explorer</h2>
         <p>
-          Whether Harissa offers to become your default player for MP3 and MP4,
-          and whether it turns up under &ldquo;Open with&rdquo;, is decided by
-          the installer. Since that does not exist yet, neither does the answer.
-          This section gets filled in when it can actually be tested.
+          Installing Harissa adds it to the <strong>Open with</strong> list for
+          the audio and video types it supports. It deliberately does not make
+          itself your default player: whatever opened your videos before still
+          does, until you decide otherwise.
+        </p>
+        <p>
+          To play something with it once, right-click the file and choose{" "}
+          <strong>Open with → Harissa Media Player</strong>. To make it the
+          default, tick <strong>Always use this app</strong> in that dialog, or
+          set it under <strong>Settings → Apps → Default apps</strong>. Windows
+          reserves that choice for you, and no installer can make it on your
+          behalf.
+        </p>
+        <p>
+          Opening a file this way starts playback straight away and puts the
+          player in front, rather than adding it behind whatever was already
+          queued. If Harissa is already running, the file opens in that window
+          instead of starting a second copy.
         </p>
 
         <hr />

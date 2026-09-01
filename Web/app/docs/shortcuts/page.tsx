@@ -52,8 +52,9 @@ export default function ShortcutsPage() {
 
         <h2 id="not-bound">Nothing bound yet</h2>
         <p>
-          There are no keys for playback speed, repeat, shuffle or subtitles,
-          because none of those exist yet.
+          Shuffle and repeat have buttons in the player bar but no keys of their
+          own. There are no keys for playback speed or subtitles, because
+          neither of those exists yet.
         </p>
       </div>
     </>

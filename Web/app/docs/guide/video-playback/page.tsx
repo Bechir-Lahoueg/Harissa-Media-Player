@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Callout } from "@/components/ui/callout";
 import { DocHeader } from "@/components/docs/doc-header";
 import { Screenshot } from "@/components/ui/screenshot";
-import { StatusBadge } from "@/components/ui/status-badge";
 
 export const metadata: Metadata = {
   title: "Video playback",
@@ -51,20 +50,18 @@ export default function VideoPlaybackPage() {
         </p>
 
         <h2 id="fullscreen">Fullscreen</h2>
-      </div>
-
-      <div className="my-6 flex items-center gap-3">
-        <StatusBadge status="v1" />
-        <span className="text-[13.5px] text-ash-dim">
-          Being finished for the first release
-        </span>
-      </div>
-
-      <div className="prose">
         <p>
           Video can fill the display, with <code>F</code> to enter and{" "}
           <code>Esc</code> to leave. Audio files have no picture, so fullscreen
           does not apply to them.
+        </p>
+        <p>
+          Fullscreen keeps Harissa&rsquo;s own controls rather than handing you
+          the ones the browser engine would draw. The title sits at the top, the
+          transport and progress bar along the bottom, and both fade away, along
+          with the mouse pointer, after about two seconds without movement. Move
+          the mouse or press a key and they come straight back. While a video is
+          paused the controls stay put, so the state is never a mystery.
         </p>
 
         <h2 id="codecs">Which MP4 files play</h2>

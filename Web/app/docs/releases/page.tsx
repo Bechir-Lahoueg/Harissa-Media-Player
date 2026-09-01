@@ -18,7 +18,7 @@ export default function ReleasesPage() {
       <DocHeader
         section="Reference"
         title="Releases"
-        summary="Harissa has not been released yet. This page will carry each version, its installer and its notes as they are published."
+        summary="Version 1.0.0 is built and waiting to be published. This page carries each version, its installer and its notes."
       />
 
       <div className="mt-8">

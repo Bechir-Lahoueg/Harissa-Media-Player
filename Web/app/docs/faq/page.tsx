@@ -41,20 +41,52 @@ export default function FaqPage() {
       <div className="mt-9">
         <Question question="Can I download Harissa yet?">
           <p>
-            Not yet. The player works, but it has not been packaged into a
-            setup file anyone can install. If you have Node.js you can{" "}
-            <Link href="/docs/installation">run it from source</Link> in the
-            meantime, and the download button turns on here and on the{" "}
-            <Link href="/docs/releases">releases page</Link> the day it is ready.
+            Version 1.0.0 is built and the Windows installer exists. The
+            download button turns on here and on the{" "}
+            <Link href="/docs/releases">releases page</Link> as soon as it is
+            published. If you have Node.js you can also{" "}
+            <Link href="/docs/installation">run it from source</Link>.
+          </p>
+        </Question>
+
+        <Question question="Why does Windows warn me about the installer?">
+          <p>
+            Because it is not code-signed. Windows shows{" "}
+            &ldquo;Windows protected your PC&rdquo; for any installer it does
+            not recognise; choose <strong>More info</strong>, then{" "}
+            <strong>Run anyway</strong>. Signing certificates cost money every
+            year and Harissa does not have one yet. There is more detail, and a
+            note about Smart App Control, on the{" "}
+            <Link href="/docs/installation">installation page</Link>.
           </p>
         </Question>
 
         <Question question="Which files can it play?">
           <p>
-            MP3 and MP4 are the two it promises. Plenty of others open as well,
-            including WAV, FLAC, OGG, M4A, MKV, WebM and MOV, and they play if
-            the codec inside them is one the player can read. There is more on
-            that under <Link href="/docs/guide/opening-media">opening media</Link>.
+            For audio: MP3, M4A, AAC, WAV, FLAC, OGG, OGA, Opus and WebA. For
+            video: MP4, M4V, MKV, WebM, MOV, AVI and OGV. A file plays when the
+            codec inside it is one the media engine can decode, which covers
+            most everyday files — MP4 and MKV holding H.264, and any of the
+            common audio formats. Older containers such as AVI sometimes hold
+            codecs it cannot read. There is more under{" "}
+            <Link href="/docs/guide/opening-media">opening media</Link>.
+          </p>
+        </Question>
+
+        <Question question="Does it change my default media player?">
+          <p>
+            No. Installing it adds Harissa to the &ldquo;Open with&rdquo; list,
+            and nothing else. Whatever opened your videos before still does,
+            unless you choose Harissa yourself and tick{" "}
+            <strong>Always use this app</strong>.
+          </p>
+        </Question>
+
+        <Question question="Is it available in my language?">
+          <p>
+            The interface follows your Windows display language. English,
+            French, Arabic, Spanish and German are translated; any other
+            language falls back to English.
           </p>
         </Question>
 

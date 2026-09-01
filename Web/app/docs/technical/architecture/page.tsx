@@ -167,8 +167,8 @@ export default function ArchitecturePage() {
         <p>
           The cost is size. An Electron application ships a browser engine, so it
           will always be larger on disk than a native player of the same scope.
-          For a V1 that has to play MP3 and MP4 reliably, that trade is worth
-          making; if it stops being worth it, the layering above is what would
+          For a player whose job is to open whatever is already on your disk,
+          that trade is worth making; if it stops being worth it, the layering above is what would
           make the media engine replaceable without rewriting the interface.
         </p>
 

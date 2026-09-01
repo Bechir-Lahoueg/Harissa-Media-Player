@@ -46,17 +46,10 @@ export default function OpeningMediaPage() {
           playlists are on the <Link href="/docs/roadmap">roadmap</Link>.
         </p>
 
-        <h2 id="formats">Formats V1 accepts</h2>
+        <h2 id="formats">Formats it accepts</h2>
         <p>
-          Two formats are promised: <strong>MP3</strong> for music and{" "}
-          <strong>MP4</strong> for video. Those are the ones Harissa plays
-          dependably, because the media engine it is built on handles MP3, and
-          MP4 files that use H.264 video with AAC audio. That covers almost
-          everything you are likely to have.
-        </p>
-        <p>
-          The dialog itself offers more than that. Its filters let you narrow to
-          audio, to video, or to everything it recognises:
+          Harissa opens the formats below, and its filters let you narrow the
+          dialog to audio, to video, or to everything it recognises:
         </p>
         <ul>
           <li>
@@ -68,9 +61,17 @@ export default function OpeningMediaPage() {
           </li>
         </ul>
         <p>
-          Being listed is not a guarantee. Those files open, and they play if the
-          media engine can decode them; MKV and AVI in particular often carry
-          codecs it does not ship. When decoding fails, Harissa says so rather
+          What matters for playback is the codec inside the file, not the
+          extension on it. The media engine handles the common cases without
+          fuss: MP3, AAC, WAV, FLAC, Opus and Vorbis for audio, and H.264 video
+          with AAC audio, which is what phone recordings, video exports and most
+          downloads give you. MKV containers usually hold exactly that and play
+          fine.
+        </p>
+        <p>
+          The exceptions are older or less common codecs — AVI in
+          particular often carries something the engine does not ship, and so
+          can MKV files using HEVC. When decoding fails, Harissa says so rather
           than sitting on a silent player.
         </p>
 
