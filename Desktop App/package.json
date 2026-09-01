@@ -67,42 +67,9 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Harissa Media Player",
-      "perMachine": false
+      "perMachine": false,
+      "include": "build/installer.nsh"
     },
-    "compression": "maximum",
-    "fileAssociations": [
-      {
-        "ext": [
-          "mp4",
-          "m4v",
-          "mkv",
-          "webm",
-          "mov",
-          "avi",
-          "ogv"
-        ],
-        "name": "Video",
-        "description": "Video file",
-        "role": "Viewer",
-        "icon": "build/icon.ico"
-      },
-      {
-        "ext": [
-          "mp3",
-          "m4a",
-          "aac",
-          "wav",
-          "flac",
-          "ogg",
-          "oga",
-          "opus",
-          "weba"
-        ],
-        "name": "Audio",
-        "description": "Audio file",
-        "role": "Viewer",
-        "icon": "build/icon.ico"
-      }
-    ]
+    "compression": "maximum"
   }
 }

@@ -13,6 +13,8 @@ import { MEDIA_EXTENSIONS, extensionOf, isVideoFile } from './lib/media'
 
 /** Pressing previous within this many seconds goes to the previous track rather than restarting. */
 const RESTART_THRESHOLD_SECONDS = 3
+/** Window for collecting files from a multi-selection into one queue. */
+const EXTERNAL_OPEN_BATCH_MS = 250
 /** How long the pointer must be still before the fullscreen chrome and cursor go. */
 const CONTROLS_FADE_MS = 2000
 
@@ -34,6 +36,8 @@ function App() {
   const [isDropTarget, setIsDropTarget] = useState(false)
 
   const shellRef = useRef<HTMLDivElement>(null)
+  const externalBatch = useRef<string[]>([])
+  const externalTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const mediaRef = useRef<HTMLVideoElement>(null)
   const autoPlayRef = useRef(false)
   const endedRef = useRef<() => void>(() => {})
@@ -108,23 +112,62 @@ function App() {
     }
   })
 
-  /** Appends dropped files; starts playing only when nothing is loaded yet. */
+  /**
+   * Appends dropped files. Dragging onto a running player reads as "queue these
+   * up", so playback only starts when nothing was loaded to begin with.
+   */
   const addToQueue = useCallback(
-    (paths: string[], playNow = false) => {
+    (paths: string[]) => {
       if (paths.length === 0) return
       const wasEmpty = playlist.length === 0 || currentIndex < 0
-      // Appended items start where the old queue ended, unless it was empty.
-      const firstAdded = wasEmpty ? 0 : playlist.length
       setMediaError(null)
       setPlaylist((previous) => [...previous, ...paths])
-      if (wasEmpty || playNow) {
-        goTo(firstAdded)
+      if (wasEmpty) {
+        goTo(0)
       } else {
         setQueueOpen(true)
       }
     },
     [playlist.length, currentIndex, goTo],
   )
+
+  /**
+   * Files handed over by Explorer — double-clicking an associated type, or
+   * "Open with". A double-click means "play this", not "add this behind
+   * whatever is already running", so the queue is replaced rather than
+   * appended; re-opening the same file can never stack up duplicates.
+   *
+   * Windows launches one process per file for a multi-selection, so opens that
+   * land within a beat of each other are collected into a single queue instead
+   * of each replacing the last.
+   */
+  const openExternally = useCallback(
+    (paths: string[]) => {
+      if (paths.length === 0) return
+      externalBatch.current.push(...paths)
+
+      if (externalTimer.current) clearTimeout(externalTimer.current)
+      externalTimer.current = setTimeout(() => {
+        const batch = externalBatch.current
+        externalBatch.current = []
+        externalTimer.current = null
+
+        setMediaError(null)
+        setPlaylist(batch)
+        // Launched to play something specific: show the player, not the library.
+        setSidebarCollapsed(true)
+        setQueueOpen(false)
+        goTo(0)
+      }, EXTERNAL_OPEN_BATCH_MS)
+    },
+    [goTo],
+  )
+
+  useEffect(() => {
+    return () => {
+      if (externalTimer.current) clearTimeout(externalTimer.current)
+    }
+  }, [])
 
   const handleOpenFiles = useCallback(async () => {
     const filePaths = await window.harissa.openFile()
@@ -200,15 +243,11 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mediaUrl])
 
-  // Files handed over by Explorer ("Open with", or double-clicking an associated
-  // type) are an explicit request to play that file, so they jump the queue
-  // rather than queueing silently behind whatever is already running.
   useEffect(() => {
     return window.harissa.onOpenFiles((paths) => {
-      const playable = paths.filter((p) => MEDIA_EXTENSIONS.includes(extensionOf(p)))
-      addToQueue(playable, true)
+      openExternally(paths.filter((p) => MEDIA_EXTENSIONS.includes(extensionOf(p))))
     })
-  }, [addToQueue])
+  }, [openExternally])
 
   useEffect(() => {
     const onChange = () => setIsFullscreen(document.fullscreenElement !== null)
