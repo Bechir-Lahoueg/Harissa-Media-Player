@@ -1,4 +1,5 @@
 import { Logo } from "@/components/layout/wordmark";
+import { DownloadButton } from "@/components/ui/download-button";
 import { isReleased, latestRelease, type Release } from "@/lib/release";
 import { platform, site } from "@/lib/site";
 
@@ -44,13 +45,13 @@ export function DownloadCard({ release = latestRelease }: { release?: Release })
           </div>
         </div>
 
-        {released ? (
-          <a
-            href={release.downloadUrl ?? undefined}
+        {released && release.downloadUrl ? (
+          <DownloadButton
+            href={release.downloadUrl}
             className="rounded-[10px] bg-chili px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-chili-hi"
           >
             Download for Windows
-          </a>
+          </DownloadButton>
         ) : (
           <span className="rounded-[10px] border border-dashed border-line px-6 py-3 text-[14px] text-ash-dim">
             Not ready yet
